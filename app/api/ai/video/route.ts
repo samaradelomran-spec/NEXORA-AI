@@ -203,7 +203,7 @@ export async function GET(request: Request) {
       if (status === "COMPLETED" && videoUri) {
         try {
           const parsedUri = new URL(videoUri);
-          const fileMatch = parsedUri.pathname.match(/\\/files\\/([^/:]+)/);
+          const fileMatch = parsedUri.pathname.match(/\/files\/([^/:]+)/);
           if (parsedUri.protocol !== "https:" || parsedUri.hostname !== "generativelanguage.googleapis.com" || !fileMatch) {
             providerError = "عاد Gemini برابط ملف فيديو غير صالح.";
             status = "FAILED";
