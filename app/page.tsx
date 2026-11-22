@@ -64,8 +64,8 @@ export default function Home() {
         <Link className="nav-item models-nav-link" href="/settings"><Settings2 size={18} /> الإعدادات وحالة الربط</Link>
         <Link className="nav-item models-nav-link" href="/admin"><ShieldCheck size={18} /> لوحة الإدارة</Link>
         <div className="sidebar-bottom">
-          <div className="plan-card"><div className="plan-top"><Sparkles size={16} /> <b>ابدأ رحلتك الإبداعية</b></div><p>ستظهر هنا تفاصيل خطتك واستخدامك بعد تفعيل الحسابات.</p><button onClick={() => setNotice("سيتم تفعيل الخطط والاشتراكات بعد إعداد نظام الحسابات والدفع.")}>استكشف الخطط <ArrowLeft size={15} /></button></div>
-          <button className="nav-item"><Settings2 size={18} /> الإعدادات</button>
+          <div className="plan-card"><div className="plan-top"><Sparkles size={16} /> <b>ابدأ رحلتك الإبداعية</b></div><p>ستظهر هنا تفاصيل خطتك واستخدامك بعد تفعيل الحسابات.</p><button onClick={() => window.location.assign("/pricing")}>استكشف الخطط <ArrowLeft size={15} /></button></div>
+          <Link className="nav-item" href="/settings"><Settings2 size={18} /> الإعدادات</Link>
         </div>
       </aside>
 
@@ -75,7 +75,7 @@ export default function Home() {
         <header className="topbar">
           <button className="icon-btn mobile-menu" onClick={() => setMobileOpen(true)} aria-label="فتح القائمة"><Menu /></button>
           <div className="breadcrumb">مساحة العمل <span>/</span> <b>نظرة عامة</b></div>
-          <div className="top-actions"><button className="icon-btn" aria-label="بحث"><Search size={18} /></button><button className="icon-btn notification" aria-label="الإشعارات"><Bell size={18} /></button><AccountControl /></div>
+          <div className="top-actions"><button className="icon-btn" aria-label="البحث عن استوديو" title="البحث عن استوديو" onClick={() => { document.getElementById("studio-search-input")?.focus(); document.getElementById("studios")?.scrollIntoView({ behavior: "smooth" }); }}><Search size={18} /></button><Link className="icon-btn notification" href="/activity" aria-label="سجل العمليات" title="سجل العمليات"><Bell size={18} /></Link><AccountControl /></div>
         </header>
 
         <div className="content">
@@ -100,7 +100,7 @@ export default function Home() {
           {active !== "all" && (() => { const selected = studios.find((item) => item.id === active); return selected ? <StudioWorkspace id={selected.id} title={selected.title} desc={selected.desc} initialPrompt={selected.id === "assistant" ? prompt : ""} /> : null; })()}
 
           <section className="studios-section" id="studios">
-            <div className="section-heading"><div><span className="section-kicker">مساحة أدواتك</span><h2>استوديوهات NEXORA</h2><p>اختر الاستوديو المناسب وحوّل فكرتك إلى مشروع.</p></div><div className="studio-search"><Search size={17} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن استوديو..." /></div></div>
+            <div className="section-heading"><div><span className="section-kicker">مساحة أدواتك</span><h2>استوديوهات NEXORA</h2><p>اختر الاستوديو المناسب وحوّل فكرتك إلى مشروع.</p></div><div className="studio-search"><Search size={17} /><input id="studio-search-input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن استوديو..." aria-label="ابحث عن استوديو" /></div></div>
             <div className="filter-row"><button className={active === "all" ? "filter active-filter" : "filter"} onClick={() => setActive("all")}>الكل <span>08</span></button>{studios.map((s) => <button key={s.id} className={active === s.id ? "filter active-filter" : "filter"} onClick={() => setActive(s.id)}>{s.title.replace("استوديو ", "").replace(" والمشاريع", "")}</button>)}</div>
             <div className="studio-grid">{filtered.map((studio) => { const Icon = studio.icon; return <article className="studio-card" key={studio.id}><div className={`studio-icon ${studio.color}`}><Icon size={23} /></div><span className="studio-tag">{studio.tag}</span><h3>{studio.title}</h3><p>{studio.desc}</p><button className="card-action" onClick={() => startStudio(studio.title, studio.id)}>افتح الاستوديو <ArrowLeft size={16} /></button></article>; })}</div>
             {filtered.length === 0 && <div className="empty-state">ما لقينا استوديو بهذا الاسم. جرّب كلمة ثانية.</div>}
