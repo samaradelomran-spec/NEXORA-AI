@@ -72,14 +72,15 @@ export async function POST(request: Request) {
       model = falEndpoint;
       resolution = ["1080p", "2K", "4K"].includes(body.resolution || "") ? body.resolution! : "2K";
       const resolutionField = process.env.FAL_VIDEO_RESOLUTION_FIELD || "resolution";
+      const durationField = process.env.FAL_VIDEO_DURATION_FIELD || "duration";
       let defaultParams: Record<string, unknown> = {};
       try { defaultParams = JSON.parse(process.env.FAL_VIDEO_DEFAULT_PARAMS || "{}"); } catch { return Response.json({ error: "FAL_VIDEO_DEFAULT_PARAMS يجب أن يكون JSON صالحاً." }, { status: 500 }); }
       if (!defaultParams || Array.isArray(defaultParams) || typeof defaultParams !== "object") return Response.json({ error: "FAL_VIDEO_DEFAULT_PARAMS يجب أن يكون كائناً JSON." }, { status: 500 });
-      if (!/^[a-zA-Z0-9_]+$/.test(resolutionField)) return Response.json({ error: "اسم حقل الدقة في إعدادات fal غير صالح." }, { status: 500 });
+      if (!/^[a-zA-Z0-9_]+$/.test(resolutionField) || !/^[a-zA-Z0-9_]+$/.test(durationField)) return Response.json({ error: "أسماء حقول الدقة والمدة في إعدادات fal غير صالحة." }, { status: 500 });
       const submitted = await fetch("https://queue.fal.run/" + model, {
         method: "POST",
         headers: { Authorization: "Key " + key, "Content-Type": "application/json" },
-        body: JSON.stringify({ ...defaultParams, prompt, [resolutionField]: resolution }),
+        body: JSON.stringify({ ...defaultParams, prompt, [resolutionField]: resolution, [durationField]: duration }),
         cache: "no-store",
         signal: AbortSignal.timeout(50000)
       });
