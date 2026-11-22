@@ -41,11 +41,11 @@ export async function POST(request: Request) {
     const body = await request.json() as { prompt?: string; resolution?: string; provider?: string; duration?: number };
     const prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 12000) return Response.json({ error: "اكتب وصفاً للفيديو لا يتجاوز 12000 حرف." }, { status: 400 });
-    const provider = body.provider === "runway" ? "runway" : "fal";
+    const provider = body.provider === "runway" ? "runway" : body.provider === "luma" ? "luma" : "fal";
     const duration = [5, 10, 15].includes(Number(body.duration)) ? Number(body.duration) : 5;
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "video" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
-    if (provider === "fal" && body.resolution === "4K" && usage.plan !== "pro") return Response.json({ error: "دقة 4K للفيديو متاحة لخطة Pro فقط." }, { status: 403 });
+    if ((provider === "fal" || provider === "luma") && body.resolution === "4K" && usage.plan !== "pro") return Response.json({ error: "دقة 4K للفيديو متاحة لخطة Pro فقط." }, { status: 403 });
     const jobId = randomUUID();
     let requestId = "";
     let model = "";
@@ -64,6 +64,23 @@ export async function POST(request: Request) {
       });
       const data = await submitted.json();
       if (!submitted.ok || !data.id) return Response.json({ error: "تعذر إرسال الفيديو إلى Runway. تحقق من المفتاح والنموذج والرصيد." }, { status: 502 });
+      requestId = data.id;
+    } else if (provider === "luma") {
+      const key = process.env.LUMA_API_KEY;
+      const model = process.env.LUMA_VIDEO_MODEL || "ray-2";
+      if (!key || !["ray-2", "ray-flash-2"].includes(model)) return Response.json({ error: "Luma يحتاج LUMA_API_KEY ونموذج ray-2 أو ray-flash-2." }, { status: 503 });
+      if (body.resolution === "2K") return Response.json({ error: "Luma لا يوفّر خيار 2K في قائمة الدقات الحالية. اختر 1080p أو 4K." }, { status: 400 });
+      resolution = body.resolution === "4K" ? "4K" : "1080p";
+      const submitted = await fetch("https://api.lumalabs.ai/dream-machine/v1/generations/video", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + key, "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ generation_type: "video", prompt, model, aspect_ratio: "16:9", resolution: resolution === "4K" ? "4k" : "1080p", duration: "5s" }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(50000)
+      });
+      const data = await submitted.json();
+      if (!submitted.ok || !data.id) return Response.json({ error: "تعذر إرسال الفيديو إلى Luma. تحقق من المفتاح والنموذج والرصيد." }, { status: 502 });
+      model = data.version || model;
       requestId = data.id;
     } else {
       const key = process.env.FAL_KEY;
@@ -119,7 +136,7 @@ export async function GET(request: Request) {
     const requestId = job.result?.request_id;
     const provider = job.result?.provider;
     const model = job.result?.model;
-    if (!requestId || !["fal", "runway"].includes(provider)) return Response.json({ error: "بيانات مهمة الفيديو غير مكتملة." }, { status: 409 });
+    if (!requestId || !["fal", "runway", "luma"].includes(provider)) return Response.json({ error: "بيانات مهمة الفيديو غير مكتملة." }, { status: 409 });
 
     let status = "";
     let videoUrl = "";
@@ -138,6 +155,18 @@ export async function GET(request: Request) {
         videoUrl = typeof output === "string" ? output : output?.url || "";
       }
       if (status === "FAILED") providerError = task.failure || task.failureCode || "فشل إنشاء الفيديو لدى Runway.";
+    } else if (provider === "luma") {
+      const key = process.env.LUMA_API_KEY;
+      if (!key) return Response.json({ error: "إعداد Luma غير مكتمل." }, { status: 503 });
+      const generationResponse = await fetch("https://api.lumalabs.ai/dream-machine/v1/generations/" + encodeURIComponent(requestId), {
+        headers: { Authorization: "Bearer " + key, Accept: "application/json" }, cache: "no-store"
+      });
+      const generation = await generationResponse.json();
+      if (!generationResponse.ok) return Response.json({ error: "تعذر فحص حالة الفيديو لدى Luma." }, { status: 502 });
+      const state = String(generation.state || "").toLowerCase();
+      status = state === "completed" ? "COMPLETED" : state === "failed" ? "FAILED" : "IN_PROGRESS";
+      videoUrl = generation.assets?.video || "";
+      if (status === "FAILED") providerError = generation.failure_reason || "فشل إنشاء الفيديو لدى Luma.";
     } else {
       const key = process.env.FAL_KEY;
       if (!key || model !== falModel()) return Response.json({ error: "إعداد fal تغيّر أو غير مكتمل." }, { status: 503 });
