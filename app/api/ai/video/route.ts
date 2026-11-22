@@ -157,6 +157,7 @@ export async function GET(request: Request) {
     let status = "";
     let videoUrl = "";
     let providerError = "";
+    let videoUri = "";
     if (provider === "runway") {
       const key = process.env.RUNWAY_API_KEY;
       if (!key || model !== runwayModel()) return Response.json({ error: "إعداد Runway تغيّر أو غير مكتمل." }, { status: 503 });
@@ -194,15 +195,9 @@ export async function GET(request: Request) {
       const interactionStatus = String(interaction.status || "in_progress").toLowerCase();
       status = interactionStatus === "completed" ? "COMPLETED" : interactionStatus === "failed" ? "FAILED" : "IN_PROGRESS";
       const outputVideo = interaction.output_video || (interaction.steps || []).flatMap((step: any) => step.content || []).find((part: any) => part.type === "video");
-      const videoUri = outputVideo?.uri || "";
+      videoUri = outputVideo?.uri || "";
       if (status === "COMPLETED" && videoUri) videoUrl = "/api/ai/video/file?jobId=" + encodeURIComponent(jobId);
       if (status === "FAILED") providerError = interaction.error?.message || "فشل إنشاء الفيديو لدى Gemini Omni.";
-      if (status === "COMPLETED" && videoUri) {
-        await restJob(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, {
-          method: "PATCH", headers: { Prefer: "return=minimal" },
-          body: JSON.stringify({ result: { ...job.result, video_uri: videoUri }, updated_at: new Date().toISOString() })
-        });
-      }
     } else {
       const key = process.env.FAL_KEY;
       if (!key || model !== falModel()) return Response.json({ error: "إعداد fal تغيّر أو غير مكتمل." }, { status: 503 });
@@ -225,7 +220,7 @@ export async function GET(request: Request) {
     const finished = status === "SUCCEEDED" || status === "COMPLETED" || status === "FAILED" || status === "CANCELED" || status === "CANCELLED";
     if (!finished) return Response.json({ status, queuePosition: null });
     const nextStatus = videoUrl ? "completed" : "failed";
-    const nextResult = { ...job.result, video_url: videoUrl || null, provider_error: videoUrl ? null : providerError || "لم يرجع المزود رابط فيديو صالحاً." };
+    const nextResult = { ...job.result, ...(videoUri ? { video_uri: videoUri } : {}), video_url: videoUrl || null, provider_error: videoUrl ? null : providerError || "لم يرجع المزود رابط فيديو صالحاً." };
     await restJob(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, {
       method: "PATCH", headers: { Prefer: "return=minimal" },
       body: JSON.stringify({ status: nextStatus, result: nextResult, updated_at: new Date().toISOString() })
