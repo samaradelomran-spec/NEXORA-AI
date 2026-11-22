@@ -91,6 +91,8 @@ export async function POST(request: Request) {
         mimeType = match[1];
         image = match[2];
       } else {
+        const imageHost = new URL(imageUrl).hostname;
+        if (imageHost !== "storage.googleapis.com" && !imageHost.endsWith(".fal.media")) return Response.json({ error: "عاد FLUX برابط صورة من مضيف غير معتمد." }, { status: 502 });
         const imageResponse = await fetch(imageUrl, { cache: "no-store", signal: AbortSignal.timeout(30000) });
         if (!imageResponse.ok) return Response.json({ error: "تعذر تنزيل الصورة الناتجة من FLUX." }, { status: 502 });
         mimeType = imageResponse.headers.get("content-type") || "image/png";
