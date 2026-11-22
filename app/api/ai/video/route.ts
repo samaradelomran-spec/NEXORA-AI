@@ -34,14 +34,17 @@ export async function POST(request: Request) {
   if (!key || !model) return Response.json({ error: "محرك الفيديو غير مُعد بعد. يلزم FAL_KEY وFAL_VIDEO_MODEL في إعدادات الاستضافة." }, { status: 503 });
 
   try {
-    const body = await request.json() as { prompt?: string };
+    const body = await request.json() as { prompt?: string; resolution?: string };
     const prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 12000) return Response.json({ error: "اكتب وصفاً للفيديو لا يتجاوز 12000 حرف." }, { status: 400 });
 
+    const resolution = ["1080p", "2K", "4K"].includes(body.resolution || "") ? body.resolution! : "2K";
+    const resolutionField = process.env.FAL_VIDEO_RESOLUTION_FIELD || "resolution";
+    if (!/^[a-zA-Z0-9_]+$/.test(resolutionField)) return Response.json({ error: "اسم حقل الدقة في إعدادات fal غير صالح." }, { status: 500 });
     const submitted = await fetch("https://queue.fal.run/" + model, {
       method: "POST",
       headers: { Authorization: "Key " + key, "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt, [resolutionField]: resolution }),
       cache: "no-store"
     });
     const data = await submitted.json();
@@ -52,7 +55,7 @@ export async function POST(request: Request) {
       method: "POST", headers: { Prefer: "return=minimal" },
       body: JSON.stringify({
         id: jobId, owner_id: auth.user.id, service_type: "video", prompt, status: "queued",
-        result: { provider: "fal", model, request_id: data.request_id }
+        result: { provider: "fal", model, request_id: data.request_id, resolution }
       })
     });
     if (!saved.ok) {
