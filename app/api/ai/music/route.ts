@@ -30,11 +30,12 @@ export async function POST(request: Request) {
     const body = await request.json() as { prompt?: string; duration?: number; instrumental?: boolean; kind?: string };
     const prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 4100) return Response.json({ error: "اكتب وصفاً موسيقياً لا يتجاوز 4100 حرف." }, { status: 400 });
-    const duration = [15, 30, 60, 90].includes(Number(body.duration)) ? Number(body.duration) : 30;
+    const durationOptions = body.kind === "sfx" ? [5, 10, 15, 30] : [15, 30, 60, 90];
+    const duration = durationOptions.includes(Number(body.duration)) ? Number(body.duration) : (body.kind === "sfx" ? 10 : 30);
     const kind = body.kind === "sfx" ? "sfx" : "music";
     const model = kind === "sfx" ? (process.env.RUNWAY_SFX_MODEL || "eleven_text_to_sound_v2") : (process.env.RUNWAY_MUSIC_MODEL || "eleven_music_v2_5");
     const endpoint = kind === "sfx" ? "sound_effect" : "text_to_music";
-    const requestBody = kind === "sfx" ? { model, promptText: prompt, duration: Math.min(duration, 30), loop: false, outputFormat: "mp3" } : { model, promptText: prompt, duration, instrumental: Boolean(body.instrumental) };
+    const requestBody = kind === "sfx" ? { model, promptText: prompt, duration, loop: false, outputFormat: "mp3" } : { model, promptText: prompt, duration, instrumental: Boolean(body.instrumental) };
     const submitted = await fetch("https://api.dev.runwayml.com/v1/" + endpoint, {
       method: "POST",
       headers: { Authorization: "Bearer " + key, "Content-Type": "application/json", "X-Runway-Version": "2024-11-06" },
