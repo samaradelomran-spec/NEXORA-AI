@@ -16,15 +16,15 @@ const engines = [
   { name: "Stability AI", providerId: "stability", category: "image", tasks: "إنشاء الصور والتحرير والتحسين", detail: "أدوات توليد وتعديل الصور حسب توفر النموذج", key: "STABILITY_API_KEY" },
   { name: "Runway", providerId: "runway", category: "video", tasks: "إنشاء الفيديو والتحرير", detail: "إنتاج فيديو عبر واجهات Runway المتاحة", key: "RUNWAY_API_KEY" },
   { name: "Google Gemini Omni Video", providerId: "google", category: "video", tasks: "توليد فيديو قصير من النص", detail: "إنشاء مقاطع قصيرة عبر Gemini Omni Flash", key: "GOOGLE_AI_API_KEY" },
-  { name: "Kling AI", providerId: "kling", category: "video", tasks: "تحريك الصور وإنشاء المقاطع", detail: "يتطلب وصول API من مزود يدعم حسابك", key: "KLING_API_KEY" },
+  { name: "Kling AI", providerId: "catalog", category: "video", tasks: "تحريك الصور وإنشاء المقاطع", detail: "يتطلب وصول API من مزود يدعم حسابك", key: "KLING_API_KEY" },
   { name: "Luma", providerId: "luma", category: "video", tasks: "مشاهد ومقاطع فيديو مولدة", detail: "إنشاء فيديو وفق إمكانات النموذج المتاحة", key: "LUMA_API_KEY" },
   { name: "ElevenLabs", providerId: "elevenlabs", category: "audio", tasks: "الأصوات والتعليق الصوتي", detail: "تحويل النص إلى كلام وأدوات صوتية", key: "ELEVENLABS_API_KEY" },
   { name: "Runway Music", providerId: "runway", category: "audio", tasks: "توليد الموسيقى", detail: "توليد مقاطع موسيقية وآلاتية", key: "RUNWAY_API_KEY" },
   { name: "Runway Sound Effects", providerId: "runway", category: "audio", tasks: "المؤثرات الصوتية", detail: "إنشاء مؤثرات صوتية من وصف نصي", key: "RUNWAY_API_KEY" },
   { name: "Google Gemini TTS", providerId: "google", category: "audio", tasks: "التعليق الصوتي متعدد اللغات", detail: "توليد صوت طبيعي مع التحكم بالنبرة والإلقاء", key: "GOOGLE_AI_API_KEY" },
-  { name: "Deepgram", providerId: "deepgram", category: "audio", tasks: "تحويل الكلام إلى نص", detail: "تفريغ الصوت والتعرف على الكلام", key: "DEEPGRAM_API_KEY" },
+  { name: "Deepgram", providerId: "catalog", category: "audio", tasks: "تحويل الكلام إلى نص", detail: "تفريغ الصوت والتعرف على الكلام", key: "DEEPGRAM_API_KEY" },
   { name: "OpenAI Audio", providerId: "openai", category: "audio", tasks: "الصوت والتفريغ والمعالجة", detail: "واجهات صوتية بحسب النماذج المتاحة", key: "OPENAI_API_KEY" },
-  { name: "AssemblyAI", providerId: "assemblyai", category: "audio", tasks: "التفريغ والتحليل الصوتي", detail: "واجهات للتعرف على الكلام ومعالجة الصوت", key: "ASSEMBLYAI_API_KEY" }
+  { name: "AssemblyAI", providerId: "catalog", category: "audio", tasks: "التفريغ والتحليل الصوتي", detail: "واجهات للتعرف على الكلام ومعالجة الصوت", key: "ASSEMBLYAI_API_KEY" }
 ] as const;
 
 const categories: { id: Category; label: string; icon: typeof Bot }[] = [
