@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
-import { ArrowLeft, FolderKanban, LoaderCircle, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Eye, FolderKanban, LoaderCircle, Plus, Trash2, X } from "lucide-react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
-type Project = { id: string; name: string; description: string | null; project_type: string; created_at: string; updated_at: string };
+type Project = { id: string; name: string; description: string | null; project_type: string; created_at: string; updated_at: string; content?: { source?: string; studio?: string; title?: string; prompt?: string; resolution?: string } | null };
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -17,6 +17,7 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const [openProject, setOpenProject] = useState<string | null>(null);
   const supabase = getSupabaseBrowserClient();
 
   const loadProjects = useCallback(async () => {
@@ -24,7 +25,7 @@ export default function ProjectsPage() {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) { setUserId(null); setLoading(false); return; }
     setUserId(user.id);
-    const { data, error } = await supabase.from("projects").select("id,name,description,project_type,created_at,updated_at").order("updated_at", { ascending: false });
+    const { data, error } = await supabase.from("projects").select("id,name,description,project_type,created_at,updated_at,content").order("updated_at", { ascending: false });
     if (error) setMessage("تعذر تحميل المشاريع: " + error.message);
     else setProjects((data || []) as Project[]);
     setLoading(false);
@@ -39,7 +40,7 @@ export default function ProjectsPage() {
     const { data, error } = await supabase.from("projects").insert({
       owner_id: userId, name: name.trim(), description: description.trim(),
       project_type: type, content: {}
-    }).select("id,name,description,project_type,created_at,updated_at").single();
+    }).select("id,name,description,project_type,created_at,updated_at,content").single();
     if (error) setMessage("لم يتم حفظ المشروع: " + error.message);
     else { setProjects((current) => [data as Project, ...current]); setName(""); setDescription(""); setType("general"); setMessage("تم حفظ المشروع في قاعدة البيانات السحابية."); }
     setSaving(false);
@@ -66,7 +67,7 @@ export default function ProjectsPage() {
       </form>
       {message && <p className="project-message" role="status">{message}</p>}
       <div className="project-list-heading"><h2>كل المشاريع</h2><span>{projects.length} مشروع</span></div>
-      {loading ? <p className="project-empty">جارٍ تحميل المشاريع...</p> : projects.length ? <div className="project-grid">{projects.map((project) => <article className="project-card" key={project.id}><div className="project-card-top"><span><FolderKanban size={19} /></span><button onClick={() => void deleteProject(project.id)} aria-label="حذف المشروع"><Trash2 size={16} /></button></div><h3>{project.name}</h3><p>{project.description || "لا يوجد وصف لهذا المشروع بعد."}</p><small>{project.project_type} · {new Date(project.updated_at).toLocaleDateString("ar")}</small></article>)}</div> : <div className="project-empty"><FolderKanban size={28} /><b>لا توجد مشاريع محفوظة بعد</b><span>أنشئ أول مشروع لك من النموذج أعلاه.</span></div>}
+      {loading ? <p className="project-empty">جارٍ تحميل المشاريع...</p> : projects.length ? <div className="project-grid">{projects.map((project) => <article className="project-card" key={project.id}><div className="project-card-top"><span><FolderKanban size={19} /></span><button onClick={() => void deleteProject(project.id)} aria-label="حذف المشروع"><Trash2 size={16} /></button></div><h3>{project.name}</h3><p>{project.description || "لا يوجد وصف لهذا المشروع بعد."}</p><small>{project.project_type} · {new Date(project.updated_at).toLocaleDateString("ar")}</small>{project.content?.prompt && <button className="project-submit" type="button" onClick={() => setOpenProject(openProject === project.id ? null : project.id)}><Eye size={15} />{openProject === project.id ? "إخفاء المسودة" : "عرض المسودة"}</button>}{openProject === project.id && project.content?.prompt && <div className="project-draft-detail"><b>{project.content.title || "تفاصيل المسودة"}</b><p>{project.content.prompt}</p>{project.content.resolution && <small>الدقة المستهدفة: {project.content.resolution}</small>}</div>}</article>)}</div> : <div className="project-empty"><FolderKanban size={28} /><b>لا توجد مشاريع محفوظة بعد</b><span>أنشئ أول مشروع لك من النموذج أعلاه.</span></div>}
     </section>
   </main>;
 }
