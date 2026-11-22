@@ -93,11 +93,11 @@ export default function Home() {
 
           <section className="prompt-panel" id="workspace">
             <div className="prompt-heading"><div><span className="section-kicker">ابدأ الآن</span><h2>ما الذي تريد إنشاءه اليوم؟</h2></div><span className="prompt-icon"><Sparkles size={20} /></span></div>
-            <div className="prompt-input-wrap"><textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="اكتب فكرتك هنا... صف ما تريد إنشاءه بالتفصيل" rows={3} /><button className="generate-btn" onClick={() => setNotice(prompt.trim() ? "وصلت فكرتك إلى مساحة العمل. سيتم تفعيل التوليد عند ربط محركات الذكاء الاصطناعي." : "اكتب فكرتك أولاً، ثم اضغط ابدأ الإنشاء.")}>ابدأ الإنشاء <WandSparkles size={17} /></button></div>
+            <div className="prompt-input-wrap"><textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="اكتب فكرتك هنا... صف ما تريد إنشاءه بالتفصيل" rows={3} /><button className="generate-btn" onClick={() => { if (!prompt.trim()) { setNotice("اكتب فكرتك أولاً، ثم اضغط ابدأ الإنشاء."); return; } setActive("assistant"); setNotice("تم تجهيز فكرتك في المساعد الذكي. اضغط إرسال لبدء العمل."); window.setTimeout(() => document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth" }), 100); }}>ابدأ الإنشاء <WandSparkles size={17} /></button></div>
             <div className="suggestions">{suggestions.map((item) => <button key={item} onClick={() => setPrompt(item)}>{item}</button>)}</div>
           </section>
 
-          {active !== "all" && (() => { const selected = studios.find((item) => item.id === active); return selected ? <StudioWorkspace id={selected.id} title={selected.title} desc={selected.desc} /> : null; })()}
+          {active !== "all" && (() => { const selected = studios.find((item) => item.id === active); return selected ? <StudioWorkspace id={selected.id} title={selected.title} desc={selected.desc} initialPrompt={selected.id === "assistant" ? prompt : ""} /> : null; })()}
 
           <section className="studios-section" id="studios">
             <div className="section-heading"><div><span className="section-kicker">مساحة أدواتك</span><h2>استوديوهات NEXORA</h2><p>اختر الاستوديو المناسب وحوّل فكرتك إلى مشروع.</p></div><div className="studio-search"><Search size={17} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن استوديو..." /></div></div>
