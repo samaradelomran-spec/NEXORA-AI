@@ -63,11 +63,10 @@ export async function POST(request: Request) {
     if (provider === "openai") {
       const key = process.env.OPENAI_API_KEY;
       if (!key) return json({ error: "محرك OpenAI غير مربوط بعد. أضف OPENAI_API_KEY في إعدادات الاستضافة." }, 503);
-      const system = safeMessages.filter((item) => item.role === "assistant").length === -1 ? "" : systemInstruction;
       const input = safeMessages.map((item) => ({ role: item.role, content: item.content }));
       response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: process.env.OPENAI_MODEL || "gpt-6.2-astra", instructions: system, input, max_output_tokens: 1800 }),
+        body: JSON.stringify({ model: process.env.OPENAI_MODEL || "gpt-6.2-astra", instructions: systemInstruction, input, max_output_tokens: 1800 }),
         cache: "no-store"
       });
       const data = await response.json();
@@ -112,7 +111,7 @@ export async function POST(request: Request) {
     }
 
     if (!answer.trim()) return json({ error: "عاد المحرك برد فارغ. جرّب مرة أخرى." }, 502);
-    return json({ answer, provider, userId: user.id });
+    return json({ answer, provider });
   } catch {
     return json({ error: "حدث خطأ غير متوقع أثناء الاتصال بالمحرك. حاول مرة أخرى." }, 500);
   }
