@@ -26,8 +26,18 @@ export default function AudioStudio() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إنشاء الصوت.");
-      setAudio("data:" + data.mimeType + ";base64," + data.audio);
-      setNotice("تم إنشاء الملف الصوتي بنجاح عبر ElevenLabs.");
+      const preview = "data:" + data.mimeType + ";base64," + data.audio;
+      setAudio(preview);
+      const bytes = Uint8Array.from(atob(data.audio), (character) => character.charCodeAt(0));
+      const blob = new Blob([bytes], { type: data.mimeType });
+      const path = session.user.id + "/uploads/" + Date.now() + "-voiceover.mp3";
+      const { error: storageError } = await supabase.storage.from("nexora-files").upload(path, blob, { contentType: data.mimeType, upsert: false });
+      if (storageError) setNotice("تم إنشاء الصوت، لكن التخزين السحابي لم يُفعّل بعد.");
+      else {
+        const { data: signed } = await supabase.storage.from("nexora-files").createSignedUrl(path, 3600);
+        if (signed?.signedUrl) setAudio(signed.signedUrl);
+        setNotice("تم إنشاء الصوت وحفظ نسخة منه سحابياً.");
+      }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "حدث خطأ أثناء إنشاء الصوت.");
     } finally { setBusy(false); }
