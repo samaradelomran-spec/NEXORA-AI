@@ -10,7 +10,7 @@ export async function GET() {
     { id: "mistral", name: "Mistral AI", keys: ["MISTRAL_API_KEY"] },
     { id: "fal", name: "fal.ai / FLUX", keys: ["FAL_KEY"], required: ["FAL_VIDEO_MODEL"] },
     { id: "stability", name: "Stability AI", keys: ["STABILITY_API_KEY"] },
-    { id: "runway", name: "Runway", keys: ["RUNWAY_API_KEY"] },
+    { id: "runway", name: "Runway", keys: ["RUNWAY_API_KEY"], required: ["RUNWAY_VIDEO_MODEL"] },
     { id: "kling", name: "Kling AI", keys: ["KLING_API_KEY"] },
     { id: "luma", name: "Luma", keys: ["LUMA_API_KEY"] },
     { id: "elevenlabs", name: "ElevenLabs", keys: ["ELEVENLABS_API_KEY"], required: ["ELEVENLABS_DEFAULT_VOICE_ID"] },
