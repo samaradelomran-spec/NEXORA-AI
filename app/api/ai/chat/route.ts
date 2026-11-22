@@ -130,7 +130,7 @@ export async function POST(request: Request) {
           store: false,
           input: safeMessages.map((item, index) => ({
             type: item.role === "assistant" ? "model_output" : "user_input",
-            content: [{ type: "text", text: index === 0 && item.role === "user" ? systemInstruction + "\\n\\n" + item.content : item.content }]
+            content: [{ type: "text", text: index === 0 && item.role === "user" ? systemInstruction + "\n\n" + item.content : item.content }]
           }))
         }),
         cache: "no-store"
