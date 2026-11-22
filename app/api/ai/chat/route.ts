@@ -128,9 +128,9 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
           store: false,
-          input: safeMessages.map((item) => ({
+          input: safeMessages.map((item, index) => ({
             type: item.role === "assistant" ? "model_output" : "user_input",
-            content: [{ type: "text", text: item.content }]
+            content: [{ type: "text", text: index === 0 && item.role === "user" ? systemInstruction + "\\n\\n" + item.content : item.content }]
           }))
         }),
         cache: "no-store"
