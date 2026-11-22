@@ -96,7 +96,7 @@ export async function POST(request: Request) {
       const input = safeMessages.map((item) => ({ role: item.role, content: item.content }));
       response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: process.env.OPENAI_MODEL || "gpt-6.2-astra", instructions: systemInstruction, input, max_output_tokens: 1800 }),
+        body: JSON.stringify({ model: process.env.OPENAI_MODEL || "gpt-6.2-sol", instructions: systemInstruction, input, max_output_tokens: 1800 }),
         cache: "no-store"
       });
       const data = await response.json();
