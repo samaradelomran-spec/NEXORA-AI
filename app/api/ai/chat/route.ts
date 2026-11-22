@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     const provider = body.provider;
     const messages = body.messages;
     const studio = ["web", "games", "cinema", "series"].includes(body.studio || "") ? body.studio! : "assistant";
-    if (!["openai", "anthropic", "google"].includes(String(provider))) {
+    if (!["openai", "anthropic", "google", "mistral"].includes(String(provider))) {
       return json({ error: "اختر محركاً مدعوماً." }, 400);
     }
     if (!Array.isArray(messages) || messages.length < 1 || messages.length > 20) {
