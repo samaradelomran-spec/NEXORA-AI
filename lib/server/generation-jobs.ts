@@ -1,4 +1,17 @@
-type UsageArgs = { url: string; anon: string; token: string; ownerId: string };
+type UsageArgs = { url: string; anon: string; token: string; ownerId: string; serviceType: string };
+
+const fallbackLimits: Record<string, { free: number; pro: number }> = {
+  assistant: { free: 10, pro: 40 },
+  web: { free: 3, pro: 15 },
+  games: { free: 3, pro: 15 },
+  cinema: { free: 3, pro: 15 },
+  series: { free: 3, pro: 15 },
+  image: { free: 1, pro: 2 },
+  video: { free: 1, pro: 1 },
+  audio: { free: 2, pro: 5 },
+  music: { free: 1, pro: 1 },
+  sound_effect: { free: 2, pro: 5 }
+};
 
 export async function checkDailyGenerationLimit(args: UsageArgs): Promise<
   { allowed: true; used: number; limit: number; plan: "free" | "pro" } |
@@ -17,21 +30,21 @@ export async function checkDailyGenerationLimit(args: UsageArgs): Promise<
     }
 
     const limitsResponse = await fetch(
-      args.url + "/rest/v1/plan_limits?plan=eq." + plan + "&select=daily_generation_limit&limit=1",
+      args.url + "/rest/v1/plan_limits?plan=eq." + plan + "&service_type=eq." + encodeURIComponent(args.serviceType) + "&select=daily_generation_limit&limit=1",
       { headers, cache: "no-store" }
     );
-    let limit = plan === "pro" ? 100 : 10;
+    const fallback = fallbackLimits[args.serviceType] || fallbackLimits.assistant;
+    let limit = fallback[plan];
     if (limitsResponse.ok) {
       const rows = await limitsResponse.json();
       const configuredLimit = Number(rows?.[0]?.daily_generation_limit);
-      if (Number.isFinite(configuredLimit) && configuredLimit > 0) limit = configuredLimit;
+      if (Number.isFinite(configuredLimit) && configuredLimit >= 0) limit = configuredLimit;
     }
-    const envLimit = Number(process.env[plan === "pro" ? "NEXORA_PRO_DAILY_LIMIT" : "NEXORA_FREE_DAILY_LIMIT"]);
-    if (Number.isFinite(envLimit) && envLimit > 0) limit = envLimit;
 
     const midnight = new Date();
     midnight.setUTCHours(0, 0, 0, 0);
     const query = "?owner_id=eq." + args.ownerId +
+      "&service_type=eq." + encodeURIComponent(args.serviceType) +
       "&created_at=gte." + encodeURIComponent(midnight.toISOString()) +
       "&status=in.(processing,queued,completed)&select=id";
     const countResponse = await fetch(args.url + "/rest/v1/generation_jobs" + query, {
@@ -48,6 +61,7 @@ export async function checkDailyGenerationLimit(args: UsageArgs): Promise<
       ? { allowed: false, used, limit, plan, reason: "limit" }
       : { allowed: true, used, limit, plan };
   } catch {
-    return { allowed: false, used: 0, limit: 10, plan: "free", reason: "database" };
+    const fallback = fallbackLimits[args.serviceType] || fallbackLimits.assistant;
+    return { allowed: false, used: 0, limit: fallback.free, plan: "free", reason: "database" };
   }
 }
