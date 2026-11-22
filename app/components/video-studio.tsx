@@ -74,7 +74,27 @@ export default function VideoStudio() {
           }
           setVideoUrl(playableUrl); setBusy(false); setNotice("اكتمل إنشاء الفيديو عبر Gemini Omni."); return;
         }
-        if (data.status === "COMPLETED" && data.videoUrl) { setVideoUrl(data.videoUrl); setBusy(false); setNotice("اكتمل إنشاء الفيديو."); return; }
+        if (data.status === "COMPLETED" && data.videoUrl) {
+          let playableUrl = data.videoUrl as string;
+          const supabase = getSupabaseBrowserClient();
+          const accessToken = await token();
+          if (supabase && accessToken) {
+            const download = await fetch("/api/ai/video/download?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + accessToken } });
+            if (download.ok) {
+              const blob = await download.blob();
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                const path = user.id + "/uploads/" + jobId + "-generated-video.mp4";
+                const { error: storageError } = await supabase.storage.from("nexora-files").upload(path, blob, { contentType: blob.type || "video/mp4", upsert: true });
+                if (!storageError) {
+                  const { data: signed } = await supabase.storage.from("nexora-files").createSignedUrl(path, 3600);
+                  if (signed?.signedUrl) playableUrl = signed.signedUrl;
+                }
+              }
+            }
+          }
+          setVideoUrl(playableUrl); setBusy(false); setNotice("اكتمل إنشاء الفيديو. إذا كان التخزين السحابي مفعّلاً، حُفظت نسخة في ملفاتك."); return;
+        }
         if (data.status === "FAILED") { setBusy(false); setNotice(data.error || "فشل إنشاء الفيديو."); return; }
         timer = setTimeout(poll, 5000);
       } catch (error) {
