@@ -8,8 +8,9 @@ import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
 type Provider = "openai" | "anthropic" | "google" | "mistral";
 type Message = { role: "user" | "assistant"; content: string };
+type Studio = "assistant" | "web" | "games" | "cinema" | "series";
 
-export default function AIChat({ initialPrompt = "" }: { initialPrompt?: string }) {
+export default function AIChat({ initialPrompt = "", studio = "assistant" }: { initialPrompt?: string; studio?: Studio }) {
   const [provider, setProvider] = useState<Provider>("openai");
   const [messages, setMessages] = useState<Message[]>([]);
   const [prompt, setPrompt] = useState(initialPrompt);
@@ -30,7 +31,7 @@ export default function AIChat({ initialPrompt = "" }: { initialPrompt?: string 
       const response = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ provider, messages: next })
+        body: JSON.stringify({ provider, messages: next, studio })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إكمال الطلب.");
