@@ -35,9 +35,10 @@ export async function POST(request: Request) {
     const prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 12000) return Response.json({ error: "اكتب وصفاً للصورة لا يتجاوز 12000 حرف." }, { status: 400 });
     const resolution = ["1080p", "2K", "4K"].includes(body.resolution || "") ? body.resolution! : "2K";
-    const provider = body.provider === "google" ? "google" : "openai";
+    const provider = (["google", "openai", "stability"].includes(body.provider || "") ? body.provider : "openai") as "google" | "openai" | "stability";
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "image" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
+    if (resolution === "4K" && provider === "stability") return Response.json({ error: "محرك Stability يستخدم الدقة الافتراضية للنموذج؛ اختر Gemini أو OpenAI لاستهداف 4K." }, { status: 400 });
     if (resolution === "4K" && usage.plan !== "pro") return Response.json({ error: "دقة 4K متاحة لخطة Pro. يمكنك استخدام 2K ضمن خطتك الحالية." }, { status: 403 });
 
     let image = "";
@@ -65,6 +66,27 @@ export async function POST(request: Request) {
       if (!response.ok || !outputImage?.data) return Response.json({ error: "تعذر إنشاء الصورة عبر Gemini. تحقق من المفتاح والنموذج." }, { status: 502 });
       image = outputImage.data;
       mimeType = outputImage.mime_type || "image/png";
+    } else if (provider === "stability") {
+      const key = process.env.STABILITY_API_KEY;
+      if (!key) return Response.json({ error: "Stability AI غير مربوط. أضف STABILITY_API_KEY في إعدادات الخادم." }, { status: 503 });
+      const endpoint = process.env.STABILITY_IMAGE_ENDPOINT || "ultra";
+      if (!["ultra", "core", "sd3-large", "sd3-large-turbo", "sd3-medium"].includes(endpoint)) return Response.json({ error: "نقطة نهاية Stability غير معروفة." }, { status: 500 });
+      model = "stable-image-" + endpoint;
+      const form = new FormData();
+      form.set("prompt", prompt);
+      form.set("aspect_ratio", "16:9");
+      form.set("output_format", "png");
+      const response = await fetch("https://api.stability.ai/v2beta/stable-image/generate/" + endpoint, {
+        method: "POST",
+        headers: { Authorization: "Bearer " + key, Accept: "image/*" },
+        body: form,
+        cache: "no-store",
+        signal: AbortSignal.timeout(110000)
+      });
+      if (!response.ok) return Response.json({ error: "تعذر إنشاء الصورة عبر Stability AI. تحقق من المفتاح ورصيد الحساب." }, { status: 502 });
+      const imageBytes = Buffer.from(await response.arrayBuffer());
+      image = imageBytes.toString("base64");
+      mimeType = response.headers.get("content-type") || "image/png";
     } else {
       const key = process.env.OPENAI_API_KEY;
       if (!key) return Response.json({ error: "OpenAI Images غير مربوط. أضف OPENAI_API_KEY في إعدادات الخادم." }, { status: 503 });
@@ -85,7 +107,7 @@ export async function POST(request: Request) {
 
     if (!image) return Response.json({ error: "لم يرجع المحرك ملف صورة صالحاً." }, { status: 502 });
     await recordJob(auth.url, auth.token, auth.anon, auth.user.id, prompt, provider, model, resolution);
-    return Response.json({ image, mimeType, resolution, model, provider }, { headers: { "Cache-Control": "no-store" } });
+    return Response.json({ image, mimeType, resolution: provider === "stability" ? "model-default" : resolution, model, provider }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return Response.json({ error: "انتهت مهلة إنشاء الصورة أو حدث خطأ غير متوقع. حاول مرة أخرى." }, { status: 500 });
   }
