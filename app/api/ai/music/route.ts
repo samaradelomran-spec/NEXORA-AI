@@ -31,8 +31,9 @@ export async function POST(request: Request) {
   try {
     const body = await request.json() as { prompt?: string; duration?: number; instrumental?: boolean; kind?: string };
     const prompt = body.prompt?.trim();
-    if (!prompt || prompt.length > 4100) return Response.json({ error: "اكتب وصفاً موسيقياً لا يتجاوز 4100 حرف." }, { status: 400 });
     const kind = body.kind === "sfx" ? "sfx" : "music";
+    const promptLimit = kind === "sfx" ? 2048 : 4100;
+    if (!prompt || prompt.length > promptLimit) return Response.json({ error: kind === "sfx" ? "وصف المؤثر الصوتي يجب ألا يتجاوز 2048 حرفاً." : "اكتب وصفاً موسيقياً لا يتجاوز 4100 حرف." }, { status: 400 });
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: kind === "sfx" ? "sound_effect" : "music" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
     const durationOptions = body.kind === "sfx" ? [5, 10, 15, 30] : [15, 30, 60, 90];
