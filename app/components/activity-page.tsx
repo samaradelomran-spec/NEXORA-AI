@@ -6,7 +6,7 @@ import { Activity, ArrowLeft, CheckCircle2, Clock3, Image as ImageIcon, MessageS
 import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
 type Job = { id: string; service_type: string; prompt: string; status: string; created_at: string; result: Record<string, unknown> | null };
-const labels: Record<string, string> = { assistant: "المساعد الذكي", image: "إنشاء صورة", video: "إنشاء فيديو", audio: "إنشاء صوت", web: "إنشاء موقع", game: "إنشاء لعبة" };
+const labels: Record<string, string> = { assistant: "المساعد الذكي", games: "إنشاء لعبة", cinema: "سيناريو فيلم", series: "كتابة مسلسل", image: "إنشاء صورة", video: "إنشاء فيديو", audio: "إنشاء صوت", web: "إنشاء موقع", game: "إنشاء لعبة" };
 
 export default function ActivityPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
