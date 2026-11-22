@@ -1,0 +1,78 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Clapperboard, LoaderCircle, Play } from "lucide-react";
+import { getSupabaseBrowserClient } from "../../lib/supabase/client";
+
+export default function VideoStudio() {
+  const [prompt, setPrompt] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [jobId, setJobId] = useState("");
+  const [status, setStatus] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [notice, setNotice] = useState("");
+
+  async function accessToken() {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return null;
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
+  }
+
+  async function createVideo() {
+    if (!prompt.trim() || busy) return;
+    const token = await accessToken();
+    if (!token) { setNotice("سجّل الدخول أولاً لإنشاء الفيديو."); return; }
+    setBusy(true); setNotice(""); setVideoUrl(""); setJobId(""); setStatus("IN_QUEUE");
+    try {
+      const response = await fetch("/api/ai/video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        body: JSON.stringify({ prompt })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "تعذر إرسال مهمة الفيديو.");
+      setJobId(data.jobId); setStatus(data.status || "IN_QUEUE"); setNotice("تم إرسال الفيديو إلى طابور التوليد.");
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "حدث خطأ.");
+      setBusy(false); setStatus("");
+    }
+  }
+
+  useEffect(() => {
+    if (!jobId || videoUrl || status === "FAILED") return;
+    let active = true;
+    let timer: ReturnType<typeof setTimeout>;
+    const poll = async () => {
+      const token = await accessToken();
+      if (!token) { if (active) { setNotice("انتهت جلسة الدخول. سجّل الدخول مجدداً."); setBusy(false); } return; }
+      try {
+        const response = await fetch("/api/ai/video?jobId=" + encodeURIComponent(jobId), {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const data = await response.json();
+        if (!active) return;
+        if (!response.ok) throw new Error(data.error || "تعذر فحص حالة الفيديو.");
+        setStatus(data.status);
+        if (data.status === "COMPLETED" && data.videoUrl) { setVideoUrl(data.videoUrl); setBusy(false); setNotice("اكتمل إنشاء الفيديو."); return; }
+        if (data.status === "FAILED") { setBusy(false); setNotice(data.error || "فشل إنشاء الفيديو."); return; }
+        timer = setTimeout(poll, 5000);
+      } catch (error) {
+        if (active) { setNotice(error instanceof Error ? error.message : "تعذر فحص الفيديو."); setBusy(false); }
+      }
+    };
+    timer = setTimeout(poll, 4000);
+    return () => { active = false; clearTimeout(timer); };
+  }, [jobId, videoUrl, status]);
+
+  return <section className="video-studio-panel">
+    <div className="image-studio-head"><div><span className="section-kicker">طابور توليد الفيديو</span><h3>استوديو الفيديو والسينما</h3><p>صف المشهد والحركة وأسلوب التصوير الذي تريده.</p></div><span><Clapperboard size={22} /></span></div>
+    <label className="image-prompt-label">وصف الفيديو<textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder="مثال: لقطة سينمائية لمدينة ليلية تحت المطر، حركة كاميرا بطيئة وإضاءة واقعية..." /></label>
+    <button className="image-generate-btn" onClick={() => void createVideo()} disabled={busy || !prompt.trim()}>{busy ? <LoaderCircle size={17} className="spin" /> : <Play size={17} />}{busy ? "الفيديو قيد المعالجة..." : "إنشاء الفيديو"}</button>
+    {notice && <p className="image-studio-notice" role="status">{notice} {notice.includes("سجّل الدخول") && <Link href="/login">تسجيل الدخول</Link>}</p>}
+    {busy && <div className="video-progress"><LoaderCircle size={16} className="spin" /> الحالة: {status === "IN_PROGRESS" ? "المحرك ينشئ الفيديو الآن" : "في انتظار دور المحرك"} — قد يستغرق عدة دقائق.</div>}
+    {videoUrl && <div className="video-result"><video src={videoUrl} controls playsInline /><a href={videoUrl} target="_blank" rel="noreferrer">فتح الفيديو في نافذة جديدة</a></div>}
+    <p className="image-studio-foot">يحتاج هذا الاستوديو إلى FAL_KEY وFAL_VIDEO_MODEL كنقطة نهاية متوافقة. مدة الفيديو والدقة تعتمد على النموذج المختار وتكلفته.</p>
+  </section>;
+}
