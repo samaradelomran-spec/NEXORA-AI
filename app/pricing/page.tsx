@@ -1,0 +1,22 @@
+"use client";
+
+import Link from "next/link";
+import { ArrowLeft, Check, CreditCard, Crown, Sparkles } from "lucide-react";
+
+const freeFeatures = ["الوصول إلى مساحة العمل الأساسية", "حفظ المشاريع في الحساب", "استخدام الأدوات بعد ربط المحركات ضمن الحدود المجانية", "إدارة المشاريع والمسودات"];
+const proFeatures = ["كل مزايا الخطة المجانية", "حدود استخدام أعلى بحسب تكلفة المحركات", "أولوية في طابور المهام عند دعم المزود", "أدوات متقدمة للمشاريع الإبداعية", "إمكانية الوصول إلى محركات إضافية عند تفعيلها"];
+
+export default function PricingPage() {
+  return <main className="portal-shell">
+    <header className="portal-top"><Link href="/" className="portal-back"><ArrowLeft size={16} /> العودة لمساحة العمل</Link><span className="portal-brand">NEXORA <b>AI</b></span></header>
+    <section className="portal-content">
+      <div className="portal-heading"><div><span className="section-kicker">خطط تناسب إبداعك</span><h1>الخطط والاشتراكات</h1><p>ابدأ مجاناً، وانتقل إلى Pro عندما تحتاج مساحة واستخداماً أكبر.</p></div><span className="portal-heading-icon"><Crown size={25} /></span></div>
+      <div className="engine-notice"><CreditCard size={19} /><div><b>الدفع الإلكتروني غير مفعّل حالياً</b><p>الأسعار والمزايا التالية هي إعداد الخطط المقترح. لم نربط بوابة دفع بعد، لذلك لن يتم خصم أي مبلغ ولن نعرض الاشتراك كأنه تم تفعيله.</p></div></div>
+      <div className="pricing-grid">
+        <article className="pricing-card"><div className="pricing-label">للبداية والتجربة</div><h2>Free</h2><div className="pricing-price"><strong>$0</strong><span>/ شهرياً</span></div><p className="pricing-description">ابدأ تنظيم أفكارك ومشاريعك في NEXORA.</p><ul>{freeFeatures.map((feature) => <li key={feature}><Check size={16} />{feature}</li>)}</ul><Link className="pricing-secondary" href="/login">إنشاء حساب مجاني</Link></article>
+        <article className="pricing-card pricing-pro"><div className="pricing-popular"><Sparkles size={13} /> الخطة المتقدمة</div><div className="pricing-label">لصنّاع المحتوى والمحترفين</div><h2>Pro</h2><div className="pricing-price"><strong>$15</strong><span>/ شهرياً</span></div><p className="pricing-description">قدرات أوسع للمشاريع والاستخدام المكثف.</p><ul>{proFeatures.map((feature) => <li key={feature}><Check size={16} />{feature}</li>)}</ul><button className="pricing-disabled" disabled>الاشتراك سيتاح بعد ربط الدفع</button></article>
+      </div>
+      <p className="pricing-footnote">قد تختلف حدود التوليد والدقة والميزات حسب المحرك المتصل وشروط مزوده. دقة 2K و4K متاحة كأهداف فقط عندما يدعمها النموذج المستخدم.</p>
+    </section>
+  </main>;
+}
