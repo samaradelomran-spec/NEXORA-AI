@@ -39,7 +39,6 @@ export async function POST(request: Request) {
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "image" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
     if (resolution === "4K" && (provider === "stability" || provider === "fal")) return Response.json({ error: "هذا المحرك لا يضمن 4K. اختر Gemini أو OpenAI لاستهداف 4K." }, { status: 400 });
-    if (resolution === "4K" && usage.plan !== "pro") return Response.json({ error: "دقة 4K متاحة لخطة Pro. يمكنك استخدام 2K ضمن خطتك الحالية." }, { status: 403 });
 
     let image = "";
     let mimeType = "image/png";
