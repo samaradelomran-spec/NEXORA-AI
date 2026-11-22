@@ -14,8 +14,8 @@
 ## تكاملات API الموجودة في الكود
 - النص والمساعد: OpenAI Responses API، Anthropic Messages API، Google Gemini Interactions API، وMistral Chat Completions API.
 - الصور: OpenAI Images API وGoogle Gemini 3.1 Flash Image وStability AI Stable Image وFLUX 2 Pro عبر fal.ai، مع أهداف 1K/2K/4K بحسب إمكانات النموذج.
-- الفيديو: fal.ai Queue API وRunway Dev Tasks API وRunway Music وSound Effects API، مع تحديد نقطة النهاية والنموذج عبر متغيرات البيئة.
-- الصوت: ElevenLabs Text-to-Speech وGoogle Gemini TTS.
+- الفيديو: fal.ai Queue API وRunway Dev Tasks API وLuma Dream Machine API وGoogle Gemini Omni Video؛ كما يدعم Runway Music وSound Effects، مع تحديد نقطة النهاية والنموذج عبر متغيرات البيئة.
+- الصوت: ElevenLabs Text-to-Speech وGoogle Gemini TTS وRunway Music وSound Effects.
 - الدفع: Stripe Checkout للاشتراك، Stripe Billing Portal، وWebhook موثّق لتحديث جدول الاشتراكات.
 
 **مهم:** وجود الكود لا يعني أن الخدمة متصلة. كل محرك يحتاج مفتاح API صالحاً، وقد يحتاج نموذجاً أو نقطة نهاية مفعّلة في حساب المزود. لم يتم نشر الموقع بعد، ولم يتم اختبار هذه الاتصالات بمفاتيح حقيقية.
@@ -30,13 +30,14 @@
 - `SUPABASE_SERVICE_ROLE_KEY` — للخادم ولوحة الإدارة فقط؛ لا تضعه في متغير يبدأ بـ `NEXT_PUBLIC_`.
 
 ### الذكاء الاصطناعي
-- `OPENAI_API_KEY` و`OPENAI_IMAGE_MODEL`
+- `OPENAI_API_KEY` و`OPENAI_MODEL` و`OPENAI_IMAGE_MODEL`
 - `STABILITY_API_KEY` و`STABILITY_IMAGE_ENDPOINT`
 - `ANTHROPIC_API_KEY` و`ANTHROPIC_MODEL`
+- `MISTRAL_API_KEY` و`MISTRAL_MODEL`
 - `GOOGLE_AI_API_KEY` و`GEMINI_MODEL` و`GEMINI_IMAGE_MODEL` و`GEMINI_VIDEO_MODEL`
 - `FAL_KEY` و`FAL_IMAGE_MODEL` و`FAL_VIDEO_MODEL` و`FAL_VIDEO_RESOLUTION_FIELD` و`FAL_VIDEO_DURATION_FIELD` و`FAL_VIDEO_DEFAULT_PARAMS`
-- `RUNWAY_API_KEY` و`RUNWAY_VIDEO_MODEL`
-- `LUMA_API_KEY` و`LUMA_VIDEO_MODEL` و`RUNWAY_MUSIC_MODEL` و`RUNWAY_SFX_MODEL`
+- `RUNWAY_API_KEY` و`RUNWAY_VIDEO_MODEL` و`RUNWAY_MUSIC_MODEL` و`RUNWAY_SFX_MODEL`
+- `LUMA_API_KEY` و`LUMA_VIDEO_MODEL`
 - `ELEVENLABS_API_KEY` و`ELEVENLABS_DEFAULT_VOICE_ID` و`ELEVENLABS_MODEL`
 - `GEMINI_TTS_MODEL` و`GEMINI_TTS_VOICE` (مع مفتاح Google)
 
