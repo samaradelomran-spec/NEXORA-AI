@@ -1,6 +1,7 @@
 -- Allow each authenticated user to update their own generation job status/result.
 -- Required for async media jobs to move from queued/processing to completed/failed.
 
+drop policy if exists "Users can update their own generation jobs" on public.generation_jobs;
 create policy "Users can update their own generation jobs"
 on public.generation_jobs
 for update
