@@ -147,7 +147,7 @@ export async function GET(request: Request) {
       }
     }
 
-    const finished = status === "SUCCEEDED" || status === "COMPLETED" || status === "FAILED";
+    const finished = status === "SUCCEEDED" || status === "COMPLETED" || status === "FAILED" || status === "CANCELED" || status === "CANCELLED";
     if (!finished) return Response.json({ status, queuePosition: null });
     const nextStatus = videoUrl ? "completed" : "failed";
     const nextResult = { ...job.result, video_url: videoUrl || null, provider_error: videoUrl ? null : providerError || "لم يرجع المزود رابط فيديو صالحاً." };
