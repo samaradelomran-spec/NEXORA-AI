@@ -89,12 +89,14 @@ export async function POST(request: Request) {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
       model = process.env.GEMINI_VIDEO_MODEL || "gemini-omni-1.1-eap";
       if (!key) return Response.json({ error: "Gemini Omni Video يحتاج GOOGLE_AI_API_KEY في إعدادات الخادم." }, { status: 503 });
-      if (body.resolution === "4K" || body.resolution === "2K") return Response.json({ error: "Gemini Omni Video يستخدم حالياً 720p في هذا المسار. اختر Luma للحصول على 4K." }, { status: 400 });
-      resolution = "720p";
+      const googleResolution = body.resolution === "4K" ? "4k" : body.resolution === "1080p" ? "1080p" : body.resolution === "720p" ? "720p" : "";
+      if (!googleResolution) return Response.json({ error: "Gemini Omni لا يوفّر 2K أصلياً. اختر 720p أو 1080p أو 4K." }, { status: 400 });
+      if (googleResolution === "4k" && usage.plan !== "pro") return Response.json({ error: "دقة 4K عبر Gemini Omni متاحة لخطة Pro فقط." }, { status: 403 });
+      resolution = googleResolution === "4k" ? "4K" : googleResolution;
       const submitted = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
         method: "POST",
         headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
-        body: JSON.stringify({ model, input: prompt, response_format: { type: "video", delivery: "uri", aspect_ratio: "16:9", resolution: "720p", duration: "6s" } }),
+        body: JSON.stringify({ model, input: prompt, response_format: { type: "video", delivery: "uri", aspect_ratio: "16:9", resolution: googleResolution } }),
         cache: "no-store",
         signal: AbortSignal.timeout(50000)
       });
