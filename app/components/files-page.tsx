@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Download, File as FileIcon, FileUp, LoaderCircle, Trash2 } from "lucide-react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
-type StoredFile = { name: string; signedUrl: string; createdAt?: string; size?: number; contentType?: string };
+type StoredFile = { name: string; signedUrl: string; createdAt?: string | null; size?: number; contentType?: string };
 
 export default function FilesPage() {
   const [files, setFiles] = useState<StoredFile[]>([]);
