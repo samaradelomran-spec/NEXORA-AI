@@ -1,3 +1,5 @@
+import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
+
 type ChatMessage = { role: "user" | "assistant"; content: string };
 type Provider = "openai" | "anthropic" | "google";
 
@@ -13,28 +15,20 @@ async function getAuthenticatedUser(request: Request) {
     cache: "no-store"
   });
   if (!response.ok) return null;
-  return response.json() as Promise<{ id: string }>;
+  const user = await response.json() as { id: string };
+  return { ...user, token, url, anon };
 }
 
-async function recordJob(request: Request, ownerId: string, serviceType: string, prompt: string, result: Record<string, unknown>) {
+async function recordJob(user: { id: string; token: string; url: string; anon: string }, serviceType: string, prompt: string, result: Record<string, unknown>) {
   try {
-    const token = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "");
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!token || !url || !anon) return;
-    await fetch(`${url}/rest/v1/generation_jobs`, {
+    await fetch(user.url + "/rest/v1/generation_jobs", {
       method: "POST",
-      headers: {
-        apikey: anon,
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal"
-      },
-      body: JSON.stringify({ owner_id: ownerId, service_type: serviceType, prompt, status: "completed", result }),
+      headers: { apikey: user.anon, Authorization: "Bearer " + user.token, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ owner_id: user.id, service_type: serviceType, prompt, status: "completed", result }),
       cache: "no-store"
     });
   } catch {
-    // Generation should still be returned if optional job history logging is unavailable.
+    // Generation output remains available if optional history logging fails.
   }
 }
 
@@ -78,6 +72,8 @@ export async function POST(request: Request) {
     if (safeMessages[safeMessages.length - 1]?.role !== "user") {
       return json({ error: "آخر رسالة يجب أن تكون من المستخدم." }, 400);
     }
+    const usage = await checkDailyGenerationLimit({ url: user.url, anon: user.anon, token: user.token, ownerId: user.id });
+    if (!usage.allowed) return json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, usage.reason === "limit" ? 429 : 503);
 
     const studioInstructions: Record<string, string> = {
       assistant: "أنت مساعد NEXORA AI. أجب بدقة ووضوح، وبلغة المستخدم، ولا تدّع تنفيذ إجراءات أو إنشاء ملفات لم تنفذها فعلياً.",
@@ -141,7 +137,7 @@ export async function POST(request: Request) {
     }
 
     if (!answer.trim()) return json({ error: "عاد المحرك برد فارغ. جرّب مرة أخرى." }, 502);
-    await recordJob(request, user.id, studio, safeMessages[safeMessages.length - 1].content, { provider });
+    await recordJob(user, studio, safeMessages[safeMessages.length - 1].content, { provider });
     return json({ answer, provider, studio });
   } catch {
     return json({ error: "حدث خطأ غير متوقع أثناء الاتصال بالمحرك. حاول مرة أخرى." }, 500);
