@@ -12,7 +12,7 @@
 - واجهات API server-side للمحركات؛ مفاتيح المزودين لا تُرسل إلى المتصفح.
 
 ## تكاملات API الموجودة في الكود
-- النص والمساعد: OpenAI Responses API، Anthropic Messages API، Google Gemini Interactions API.
+- النص والمساعد: OpenAI Responses API، Anthropic Messages API، Google Gemini Interactions API، وMistral Chat Completions API.
 - الصور: OpenAI Images API وGoogle Gemini 3.1 Flash Image وStability AI Stable Image، مع أهداف 1K/2K/4K بحسب إمكانات النموذج.
 - الفيديو: fal.ai Queue API وRunway Dev Tasks API وRunway Music وSound Effects API، مع تحديد نقطة النهاية والنموذج عبر متغيرات البيئة.
 - الصوت: ElevenLabs Text-to-Speech وGoogle Gemini TTS.
