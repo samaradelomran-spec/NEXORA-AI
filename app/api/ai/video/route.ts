@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     const body = await request.json() as { prompt?: string; resolution?: string; provider?: string; duration?: number };
     const prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 12000) return Response.json({ error: "اكتب وصفاً للفيديو لا يتجاوز 12000 حرف." }, { status: 400 });
-    const provider = body.provider === "runway" ? "runway" : body.provider === "luma" ? "luma" : "fal";
+    const provider = body.provider === "runway" ? "runway" : body.provider === "luma" ? "luma" : body.provider === "google" ? "google" : "fal";
     const duration = [5, 10, 15].includes(Number(body.duration)) ? Number(body.duration) : 5;
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "video" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
@@ -81,6 +81,22 @@ export async function POST(request: Request) {
       const data = await submitted.json();
       if (!submitted.ok || !data.id) return Response.json({ error: "تعذر إرسال الفيديو إلى Luma. تحقق من المفتاح والنموذج والرصيد." }, { status: 502 });
       model = data.version || model;
+      requestId = data.id;
+    } else if (provider === "google") {
+      const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
+      model = process.env.GEMINI_VIDEO_MODEL || "gemini-omni-1.1-flash";
+      if (!key) return Response.json({ error: "Gemini Omni Video يحتاج GOOGLE_AI_API_KEY في إعدادات الخادم." }, { status: 503 });
+      if (body.resolution === "4K" || body.resolution === "2K") return Response.json({ error: "Gemini Omni Video يستخدم حالياً 720p في هذا المسار. اختر Luma للحصول على 4K." }, { status: 400 });
+      resolution = "720p";
+      const submitted = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
+        method: "POST",
+        headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
+        body: JSON.stringify({ model, input: prompt, response_format: { type: "video", delivery: "uri", aspect_ratio: "16:9", resolution: "720p", duration: "6s" } }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(50000)
+      });
+      const data = await submitted.json();
+      if (!submitted.ok || !data.id) return Response.json({ error: "تعذر إرسال الفيديو إلى Gemini Omni. تحقق من المفتاح وإتاحة النموذج المدفوعة." }, { status: 502 });
       requestId = data.id;
     } else {
       const key = process.env.FAL_KEY;
@@ -136,7 +152,7 @@ export async function GET(request: Request) {
     const requestId = job.result?.request_id;
     const provider = job.result?.provider;
     const model = job.result?.model;
-    if (!requestId || !["fal", "runway", "luma"].includes(provider)) return Response.json({ error: "بيانات مهمة الفيديو غير مكتملة." }, { status: 409 });
+    if (!requestId || !["fal", "runway", "luma", "google"].includes(provider)) return Response.json({ error: "بيانات مهمة الفيديو غير مكتملة." }, { status: 409 });
 
     let status = "";
     let videoUrl = "";
@@ -167,6 +183,26 @@ export async function GET(request: Request) {
       status = state === "completed" ? "COMPLETED" : state === "failed" ? "FAILED" : "IN_PROGRESS";
       videoUrl = generation.assets?.video || "";
       if (status === "FAILED") providerError = generation.failure_reason || "فشل إنشاء الفيديو لدى Luma.";
+    } else if (provider === "google") {
+      const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
+      if (!key) return Response.json({ error: "إعداد Gemini Omni غير مكتمل." }, { status: 503 });
+      const interactionResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions/" + encodeURIComponent(requestId), {
+        headers: { "x-goog-api-key": key }, cache: "no-store"
+      });
+      const interaction = await interactionResponse.json();
+      if (!interactionResponse.ok) return Response.json({ error: "تعذر فحص حالة الفيديو لدى Gemini Omni." }, { status: 502 });
+      const interactionStatus = String(interaction.status || "in_progress").toLowerCase();
+      status = interactionStatus === "completed" ? "COMPLETED" : interactionStatus === "failed" ? "FAILED" : "IN_PROGRESS";
+      const outputVideo = interaction.output_video || (interaction.steps || []).flatMap((step: any) => step.content || []).find((part: any) => part.type === "video");
+      const videoUri = outputVideo?.uri || "";
+      if (status === "COMPLETED" && videoUri) videoUrl = "/api/ai/video/file?jobId=" + encodeURIComponent(jobId);
+      if (status === "FAILED") providerError = interaction.error?.message || "فشل إنشاء الفيديو لدى Gemini Omni.";
+      if (status === "COMPLETED" && videoUri) {
+        await restJob(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, {
+          method: "PATCH", headers: { Prefer: "return=minimal" },
+          body: JSON.stringify({ result: { ...job.result, video_uri: videoUri }, updated_at: new Date().toISOString() })
+        });
+      }
     } else {
       const key = process.env.FAL_KEY;
       if (!key || model !== falModel()) return Response.json({ error: "إعداد fal تغيّر أو غير مكتمل." }, { status: 503 });
