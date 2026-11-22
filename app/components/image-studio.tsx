@@ -1,17 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Download, Image as ImageIcon, LoaderCircle, Sparkles } from "lucide-react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
 export default function ImageStudio() {
   const [prompt, setPrompt] = useState("");
+  const [isPro, setIsPro] = useState(false);
+  const [realismBoost, setRealismBoost] = useState(false);
   const [resolution, setResolution] = useState("2K");
   const [provider, setProvider] = useState<"openai" | "google" | "stability" | "fal">("openai");
   const [image, setImage] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    void supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      const { data: subscription } = await supabase.from("subscriptions").select("plan,status").maybeSingle();
+      if (active) setIsPro(subscription?.plan === "pro" && ["active", "trialing"].includes(subscription?.status || ""));
+    }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
 
   async function generate() {
     if (!prompt.trim() || busy) return;
@@ -24,7 +38,7 @@ export default function ImageStudio() {
       const response = await fetch("/api/ai/image", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ prompt, resolution, provider })
+        body: JSON.stringify({ prompt, resolution, provider, realismBoost })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إنشاء الصورة.");
@@ -52,6 +66,7 @@ export default function ImageStudio() {
     {provider === "stability" && <p className="image-engine-note">Stability AI يستخدم الدقة الافتراضية للنموذج؛ لا يضمن إخراج 2K أو 4K. اختر Gemini أو OpenAI عند الحاجة إلى دقة أعلى.</p>}{provider === "fal" && <p className="image-engine-note">FLUX 2 Pro يدعم أحجاماً حتى 2K تقريباً عبر هذا المسار؛ 4K غير متاح هنا. اختر Gemini أو OpenAI لـ 4K.</p>}
     <label className="image-prompt-label">وصف الصورة<textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder="مثال: مشهد سينمائي لمدينة مستقبلية عند الغروب، إضاءة واقعية وتفاصيل دقيقة..." /></label>
     <div className="image-studio-controls"><label>الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)}><option value="2K">2K — مستهدف</option><option value="4K">4K — مستهدف حسب النموذج</option><option value="1080p">وضع قياسي — 1K</option></select></label><span>اختر Gemini أو OpenAI. 2K و4K حسب دعم النموذج المختار.</span></div>
+    <label className="image-engine-note"><input type="checkbox" checked={realismBoost} onChange={(e) => setRealismBoost(e.target.checked)} disabled={!isPro || busy} /> تحسين الواقعية والتفاصيل {isPro ? "(Pro)" : "— ميزة Pro"}</label>
     <button className="image-generate-btn" onClick={() => void generate()} disabled={busy || !prompt.trim()}>{busy ? <LoaderCircle size={17} className="spin" /> : <Sparkles size={17} />}{busy ? "جارٍ إنشاء الصورة..." : "إنشاء الصورة"}</button>
     {notice && <p className="image-studio-notice" role="status">{notice} {notice.includes("سجّل الدخول") && <Link href="/login">تسجيل الدخول</Link>}</p>}
     {image && <div className="image-result"><img src={image} alt="الصورة التي تم إنشاؤها" /><a href={image} download="nexora-generated-image.png"><Download size={16} /> تنزيل الصورة</a></div>}
