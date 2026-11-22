@@ -19,7 +19,7 @@ export default function PricingPage() {
     if (supabase) void supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       const { data: subscription } = await supabase.from("subscriptions").select("plan,status").maybeSingle();
-      setHasPro(subscription?.plan === "pro" && ["active", "trialing", "past_due"].includes(subscription.status));
+      setHasPro(subscription?.plan === "pro" && ["active", "trialing"].includes(subscription.status));
     });
     void fetch("/api/system/status", { cache: "no-store" }).then((response) => response.json()).then((data) => setPaymentReady(Boolean(data.payments?.stripe))).catch(() => setPaymentReady(false));
     const query = new URLSearchParams(window.location.search);
