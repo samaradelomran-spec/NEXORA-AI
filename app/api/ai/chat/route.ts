@@ -16,6 +16,28 @@ async function getAuthenticatedUser(request: Request) {
   return response.json() as Promise<{ id: string }>;
 }
 
+async function recordJob(request: Request, ownerId: string, serviceType: string, prompt: string, result: Record<string, unknown>) {
+  try {
+    const token = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!token || !url || !anon) return;
+    await fetch(`${url}/rest/v1/generation_jobs`, {
+      method: "POST",
+      headers: {
+        apikey: anon,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal"
+      },
+      body: JSON.stringify({ owner_id: ownerId, service_type: serviceType, prompt, status: "completed", result }),
+      cache: "no-store"
+    });
+  } catch {
+    // Generation should still be returned if optional job history logging is unavailable.
+  }
+}
+
 function extractOpenAI(data: any) {
   if (typeof data.output_text === "string") return data.output_text;
   return (data.output || []).flatMap((item: any) => item.content || [])
@@ -111,6 +133,7 @@ export async function POST(request: Request) {
     }
 
     if (!answer.trim()) return json({ error: "عاد المحرك برد فارغ. جرّب مرة أخرى." }, 502);
+    await recordJob(request, user.id, "assistant", safeMessages[safeMessages.length - 1].content, { provider });
     return json({ answer, provider });
   } catch {
     return json({ error: "حدث خطأ غير متوقع أثناء الاتصال بالمحرك. حاول مرة أخرى." }, 500);
