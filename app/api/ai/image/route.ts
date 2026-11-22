@@ -35,10 +35,10 @@ export async function POST(request: Request) {
     const prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 12000) return Response.json({ error: "اكتب وصفاً للصورة لا يتجاوز 12000 حرف." }, { status: 400 });
     const resolution = ["1080p", "2K", "4K"].includes(body.resolution || "") ? body.resolution! : "2K";
-    const provider = (["google", "openai", "stability"].includes(body.provider || "") ? body.provider : "openai") as "google" | "openai" | "stability";
+    const provider = (["google", "openai", "stability", "fal"].includes(body.provider || "") ? body.provider : "openai") as "google" | "openai" | "stability" | "fal";
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "image" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
-    if (resolution === "4K" && provider === "stability") return Response.json({ error: "محرك Stability يستخدم الدقة الافتراضية للنموذج؛ اختر Gemini أو OpenAI لاستهداف 4K." }, { status: 400 });
+    if (resolution === "4K" && (provider === "stability" || provider === "fal")) return Response.json({ error: "هذا المحرك لا يضمن 4K. اختر Gemini أو OpenAI لاستهداف 4K." }, { status: 400 });
     if (resolution === "4K" && usage.plan !== "pro") return Response.json({ error: "دقة 4K متاحة لخطة Pro. يمكنك استخدام 2K ضمن خطتك الحالية." }, { status: 403 });
 
     let image = "";
@@ -66,6 +66,36 @@ export async function POST(request: Request) {
       if (!response.ok || !outputImage?.data) return Response.json({ error: "تعذر إنشاء الصورة عبر Gemini. تحقق من المفتاح والنموذج." }, { status: 502 });
       image = outputImage.data;
       mimeType = outputImage.mime_type || "image/png";
+    } else if (provider === "fal") {
+      const key = process.env.FAL_KEY;
+      const endpoint = process.env.FAL_IMAGE_MODEL || "fal-ai/flux-2-pro";
+      if (!key || !/^[a-zA-Z0-9._/-]+$/.test(endpoint) || endpoint.includes("..")) return Response.json({ error: "FLUX عبر fal يحتاج FAL_KEY ونقطة نهاية FAL_IMAGE_MODEL صالحة." }, { status: 503 });
+      model = endpoint;
+      const sizes: Record<string, { width: number; height: number }> = {
+        "1080p": { width: 1536, height: 864 },
+        "2K": { width: 2048, height: 1152 }
+      };
+      const response = await fetch("https://fal.run/" + endpoint, {
+        method: "POST",
+        headers: { Authorization: "Key " + key, "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, image_size: sizes[resolution], output_format: "png", sync_mode: true }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(110000)
+      });
+      const data = await response.json();
+      if (!response.ok || !data.images?.[0]?.url) return Response.json({ error: "تعذر إنشاء الصورة عبر FLUX. تحقق من FAL_KEY ونقطة النهاية." }, { status: 502 });
+      const imageUrl = data.images[0].url as string;
+      if (imageUrl.startsWith("data:")) {
+        const match = imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+        if (!match) return Response.json({ error: "عاد FLUX ببيانات صورة غير صالحة." }, { status: 502 });
+        mimeType = match[1];
+        image = match[2];
+      } else {
+        const imageResponse = await fetch(imageUrl, { cache: "no-store", signal: AbortSignal.timeout(30000) });
+        if (!imageResponse.ok) return Response.json({ error: "تعذر تنزيل الصورة الناتجة من FLUX." }, { status: 502 });
+        mimeType = imageResponse.headers.get("content-type") || "image/png";
+        image = Buffer.from(await imageResponse.arrayBuffer()).toString("base64");
+      }
     } else if (provider === "stability") {
       const key = process.env.STABILITY_API_KEY;
       if (!key) return Response.json({ error: "Stability AI غير مربوط. أضف STABILITY_API_KEY في إعدادات الخادم." }, { status: 503 });
