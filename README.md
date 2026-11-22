@@ -14,7 +14,7 @@
 ## تكاملات API الموجودة في الكود
 - النص والمساعد: OpenAI Responses API، Anthropic Messages API، Google Gemini Interactions API، وMistral Chat Completions API.
 - الصور: OpenAI Images API وGoogle Gemini 3.1 Flash Image وStability AI Stable Image وFLUX 2 Pro عبر fal.ai، مع أهداف 1K/2K/4K بحسب إمكانات النموذج.
-- الفيديو: fal.ai Queue API وRunway Dev Tasks API وLuma Dream Machine API وGoogle Gemini Omni 1.2 Flash؛ تتوفر 4K دون اشتراط خطة NEXORA Pro عندما يدعمها المحرك وحساب المزود، ولا يوفّر هذا المسار خيار 2K أصلياً لـ Gemini. يدعم Runway Music وSound Effects.
+- الفيديو: fal.ai Queue API وRunway Dev Tasks API وLuma Dream Machine API وGoogle Gemini Omni 1.2 Flash؛ تتوفر 4K دون اشتراط خطة NEXORA Pro عندما يدعمها المحرك وحساب المزود. Luma عبر التكامل الحالي محدود بـ1080p، بينما Seedance 2.5 على Runway يدعم 4K. قد يفرض مزود المحرك رسوماً مستقلة.
 - الصوت: ElevenLabs Text-to-Speech وGoogle Gemini TTS وRunway Music وSound Effects.
 - الدفع: Stripe Checkout للاشتراك، Stripe Billing Portal، وWebhook موثّق لتحديث جدول الاشتراكات.
 
@@ -69,7 +69,7 @@ npm run dev
 ```
 
 ## الدقة والجودة
-تُعرض 2K و4K كدقة مستهدفة فقط عندما يدعمها المحرك ونقطة النهاية. دقة 4K في الصور قد تكون تجريبية لدى المزود؛ ولا نضمن دقة أصلية موحدة لكل المحركات.
+لا تتطلب دقة 2K و4K خطة NEXORA Pro؛ تُعرض كدقة مستهدفة فقط عندما يدعمها المحرك ونقطة النهاية وحساب المزود. خطة Pro تضيف تحسينات وصفية للواقعية السينمائية والتفاصيل في الصور والفيديو. رسوم مزودي المحركات الخارجية مستقلة عن اشتراك NEXORA. دقة 4K في الصور قد تكون تجريبية لدى المزود؛ ولا نضمن دقة أصلية موحدة لكل المحركات.
 
 ## حالة الإطلاق
 المشروع ما زال في مرحلة التطوير. يلزم إكمال إعداد Supabase وStorage ومفاتيح المحركات والدفع، ثم اختبار الحسابات والتوليد والاشتراكات قبل نشر الموقع. توجد حدود استخدام يومية ابتدائية تختلف حسب نوع الخدمة والخطة، ويمكن تعديلها من جدول `plan_limits` بعد مراجعة تكلفة مزودي النماذج.
