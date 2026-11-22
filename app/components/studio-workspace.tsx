@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Bookmark, CheckCircle2, FilePlus2, Sparkles } from "lucide-react";
+import AIChat from "./ai-chat";
 
 type Props = { id: string; title: string; desc: string };
 type Draft = { id: string; studio: string; title: string; prompt: string; format: string; resolution: string; createdAt: string };
@@ -51,6 +52,7 @@ export default function StudioWorkspace({ id, title, desc }: Props) {
         <div><span className="section-kicker">مساحة العمل · {title}</span><h2>{title}</h2><p>{desc}</p></div>
         <span className="workspace-detail-icon"><Sparkles size={20} /></span>
       </div>
+      {id === "assistant" ? <AIChat /> : <>
       <div className="workspace-fields">
         <label>نوع المشروع
           <select value={format} onChange={(e) => { setFormat(e.target.value); setSaved(false); }}>
@@ -75,6 +77,7 @@ export default function StudioWorkspace({ id, title, desc }: Props) {
       {saved && <div className="workspace-success"><CheckCircle2 size={16} /> تم حفظ المسودة على هذا الجهاز.</div>}
       <div className="drafts-heading"><div><FilePlus2 size={17} /><b>مسوداتك المحفوظة</b></div><span>{drafts.length} / 30</span></div>
       {drafts.length > 0 ? <div className="draft-list">{drafts.slice(0, 4).map((draft) => <article className="draft-item" key={draft.id}><div><b>{draft.title}</b><small>{draft.studio} · {draft.createdAt}</small><p>{draft.prompt}</p></div><button onClick={() => { setPrompt(draft.prompt); setFormat(draft.format); setSaved(false); }}>فتح المسودة</button></article>)}</div> : <p className="draft-empty">ما في مسودات محفوظة بعد. اكتب فكرتك واحفظها لتلاقيها هون.</p>}
+      </>}
     </section>
   );
 }
