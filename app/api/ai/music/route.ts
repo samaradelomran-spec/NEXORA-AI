@@ -27,25 +27,28 @@ export async function POST(request: Request) {
   if (!key) return Response.json({ error: "إنشاء الموسيقى يحتاج RUNWAY_API_KEY في إعدادات الخادم." }, { status: 503 });
 
   try {
-    const body = await request.json() as { prompt?: string; duration?: number; instrumental?: boolean };
+    const body = await request.json() as { prompt?: string; duration?: number; instrumental?: boolean; kind?: string };
     const prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 4100) return Response.json({ error: "اكتب وصفاً موسيقياً لا يتجاوز 4100 حرف." }, { status: 400 });
     const duration = [15, 30, 60, 90].includes(Number(body.duration)) ? Number(body.duration) : 30;
-    const model = process.env.RUNWAY_MUSIC_MODEL || "eleven_music_v2_5";
-    const submitted = await fetch("https://api.dev.runwayml.com/v1/text_to_music", {
+    const kind = body.kind === "sfx" ? "sfx" : "music";
+    const model = kind === "sfx" ? (process.env.RUNWAY_SFX_MODEL || "eleven_text_to_sound_v2") : (process.env.RUNWAY_MUSIC_MODEL || "eleven_music_v2_5");
+    const endpoint = kind === "sfx" ? "sound_effect" : "text_to_music";
+    const requestBody = kind === "sfx" ? { model, promptText: prompt, duration: Math.min(duration, 30), loop: false, outputFormat: "mp3" } : { model, promptText: prompt, duration, instrumental: Boolean(body.instrumental) };
+    const submitted = await fetch("https://api.dev.runwayml.com/v1/" + endpoint, {
       method: "POST",
       headers: { Authorization: "Bearer " + key, "Content-Type": "application/json", "X-Runway-Version": "2024-11-06" },
-      body: JSON.stringify({ model, promptText: prompt, duration, instrumental: Boolean(body.instrumental) }),
+      body: JSON.stringify(requestBody),
       cache: "no-store",
       signal: AbortSignal.timeout(50000)
     });
     const data = await submitted.json();
-    if (!submitted.ok || !data.id) return Response.json({ error: "تعذر إرسال الموسيقى إلى Runway. تحقق من المفتاح والنموذج والرصيد." }, { status: 502 });
+    if (!submitted.ok || !data.id) return Response.json({ error: "تعذر إرسال الصوت إلى Runway. تحقق من المفتاح والنموذج والرصيد." }, { status: 502 });
 
     const jobId = randomUUID();
     const saved = await jobsRest(auth.url, auth.token, auth.anon, "", {
       method: "POST", headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({ id: jobId, owner_id: auth.user.id, service_type: "music", prompt, status: "queued", result: { provider: "runway", model, request_id: data.id, duration } })
+      body: JSON.stringify({ id: jobId, owner_id: auth.user.id, service_type: kind === "sfx" ? "sound_effect" : "music", prompt, status: "queued", result: { provider: "runway", model, request_id: data.id, duration, kind } })
     });
     if (!saved.ok) return Response.json({ error: "تم إرسال الموسيقى لكن تعذر تسجيل المهمة في حسابك." }, { status: 500 });
     return Response.json({ jobId, status: "PENDING" });
@@ -83,7 +86,7 @@ export async function GET(request: Request) {
     const output = Array.isArray(task.output) ? task.output[0] : task.output;
     const audioUrl = typeof output === "string" ? output : output?.url || "";
     const completed = status === "SUCCEEDED" && Boolean(audioUrl);
-    const result = { ...job.result, audio_url: audioUrl || null, provider_error: completed ? null : task.failure || "فشل إنشاء الموسيقى." };
+    const result = { ...job.result, audio_url: audioUrl || null, provider_error: completed ? null : task.failure || "فشل إنشاء الصوت." };
     await jobsRest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, {
       method: "PATCH", headers: { Prefer: "return=minimal" },
       body: JSON.stringify({ status: completed ? "completed" : "failed", result, updated_at: new Date().toISOString() })
