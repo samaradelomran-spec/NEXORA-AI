@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, CircleAlert, CreditCard, Database, KeyRound, RefreshCw, Server } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CircleAlert, CreditCard, Database, KeyRound, RefreshCw, Server, ShieldCheck } from "lucide-react";
 
-type Status = { database: boolean; providers: { id: string; name: string; configured: boolean }[]; payments: { stripe: boolean }; checkedAt: string };
+type Status = { database: boolean; admin: boolean; providers: { id: string; name: string; configured: boolean }[]; payments: { stripe: boolean }; checkedAt: string };
 
 export default function SettingsPage() {
   const [status, setStatus] = useState<Status | null>(null);
@@ -33,6 +33,7 @@ export default function SettingsPage() {
       {error && <p className="project-message">{error}</p>}
       {loading && !status ? <p className="project-empty">جارٍ فحص إعدادات الخدمات...</p> : status && <>
         <section className="settings-section"><h2><Database size={18} /> قاعدة البيانات والحسابات</h2><div className="settings-row"><div><b>Supabase</b><span>تسجيل الدخول وقاعدة البيانات</span></div><strong className={status.database ? "settings-ok" : "settings-pending"}><StatusIcon ok={status.database} />{status.database ? "الإعداد موجود" : "بانتظار الإعداد"}</strong></div></section>
+        <section className="settings-section"><h2><ShieldCheck size={18} /> لوحة الإدارة</h2><div className="settings-row"><div><b>إعداد المسؤولين</b><span>قائمة البريد والمفتاح الإداري للخادم</span></div><strong className={status.admin ? "settings-ok" : "settings-pending"}><StatusIcon ok={status.admin} />{status.admin ? "الإعداد موجود" : "بانتظار الإعداد"}</strong></div></section>
         <section className="settings-section"><h2><KeyRound size={18} /> محركات الذكاء الاصطناعي</h2><div className="settings-status-grid">{status.providers.map((provider) => <div className="settings-row" key={provider.id}><div><b>{provider.name}</b><span>مفتاح API</span></div><strong className={provider.configured ? "settings-ok" : "settings-pending"}><StatusIcon ok={provider.configured} />{provider.configured ? "المفتاح موجود" : "غير مضاف"}</strong></div>)}</div></section>
         <section className="settings-section"><h2><CreditCard size={18} /> الدفع والاشتراكات</h2><div className="settings-row"><div><b>Stripe</b><span>معالجة الاشتراكات والدفعات</span></div><strong className={status.payments.stripe ? "settings-ok" : "settings-pending"}><StatusIcon ok={status.payments.stripe} />{status.payments.stripe ? "المفاتيح موجودة" : "غير مربوط"}</strong></div><p className="settings-note">وجود المفاتيح وحده لا يعني أن الدفع جاهز؛ يلزم إعداد المنتجات والأسعار والـ webhook واختبار عملية دفع تجريبية.</p></section>
         <p className="settings-checked">آخر فحص: {new Date(status.checkedAt).toLocaleString("ar")}</p>
