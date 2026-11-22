@@ -9,7 +9,7 @@ export default function VideoStudio() {
   const [prompt, setPrompt] = useState("");
   const [resolution, setResolution] = useState("2K");
   const [duration, setDuration] = useState("5");
-  const [provider, setProvider] = useState<"fal" | "runway" | "luma">("fal");
+  const [provider, setProvider] = useState<"fal" | "runway" | "luma" | "google">("fal");
   const [busy, setBusy] = useState(false);
   const [jobId, setJobId] = useState("");
   const [status, setStatus] = useState("");
@@ -58,6 +58,22 @@ export default function VideoStudio() {
         if (!active) return;
         if (!response.ok) throw new Error(data.error || "تعذر فحص حالة الفيديو.");
         setStatus(data.status);
+        if (data.status === "COMPLETED" && data.videoData) {
+          const bytes = Uint8Array.from(atob(data.videoData), (character) => character.charCodeAt(0));
+          const blob = new Blob([bytes], { type: "video/mp4" });
+          const supabase = getSupabaseBrowserClient();
+          const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+          let playableUrl = URL.createObjectURL(blob);
+          if (supabase && user) {
+            const path = user.id + "/uploads/" + Date.now() + "-gemini-video.mp4";
+            const { error: storageError } = await supabase.storage.from("nexora-files").upload(path, blob, { contentType: "video/mp4", upsert: false });
+            if (!storageError) {
+              const { data: signed } = await supabase.storage.from("nexora-files").createSignedUrl(path, 3600);
+              if (signed?.signedUrl) playableUrl = signed.signedUrl;
+            }
+          }
+          setVideoUrl(playableUrl); setBusy(false); setNotice("اكتمل إنشاء الفيديو عبر Gemini Omni."); return;
+        }
         if (data.status === "COMPLETED" && data.videoUrl) { setVideoUrl(data.videoUrl); setBusy(false); setNotice("اكتمل إنشاء الفيديو."); return; }
         if (data.status === "FAILED") { setBusy(false); setNotice(data.error || "فشل إنشاء الفيديو."); return; }
         timer = setTimeout(poll, 5000);
@@ -72,8 +88,8 @@ export default function VideoStudio() {
   return <section className="video-studio-panel">
     <div className="image-studio-head"><div><span className="section-kicker">طابور توليد الفيديو</span><h3>استوديو الفيديو والسينما</h3><p>صف المشهد والحركة وأسلوب التصوير الذي تريده.</p></div><span><Clapperboard size={22} /></span></div>
     <label className="image-prompt-label">وصف الفيديو<textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder="مثال: لقطة سينمائية لمدينة ليلية تحت المطر، حركة كاميرا بطيئة وإضاءة واقعية..." /></label>
-    <div className="video-engine-select"><label>محرك الفيديو<select value={provider} onChange={(e) => setProvider(e.target.value as "fal" | "runway" | "luma")} disabled={busy}><option value="fal">fal.ai</option><option value="runway">Runway</option></select></label><label>المدة<select value={duration} onChange={(e) => setDuration(e.target.value)} disabled={busy || provider === "luma"}><option value="5">5 ثوانٍ</option>{provider !== "luma" && <><option value="10">10 ثوانٍ</option><option value="15">15 ثانية</option></>}</select></label></div>
-    {provider === "fal" ? <label className="video-resolution-label">الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)} disabled={busy}><option value="2K">2K</option><option value="4K">4K (حسب دعم النموذج)</option><option value="1080p">1080p</option></select></label> : provider === "luma" ? <label className="video-resolution-label">الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)} disabled={busy}><option value="1080p">1080p</option><option value="4K">4K (خطة Pro)</option></select></label> : <p className="video-engine-note">Runway يستخدم إعداد الدقة الافتراضي المدعوم من النموذج (حالياً 1080p)، ولا نضمن إخراج 2K أو 4K من هذا المسار.</p>}
+    <div className="video-engine-select"><label>محرك الفيديو<select value={provider} onChange={(e) => setProvider(e.target.value as "fal" | "runway" | "luma" | "google")} disabled={busy}><option value="fal">fal.ai</option><option value="runway">Runway</option></select></label><label>المدة<select value={duration} onChange={(e) => setDuration(e.target.value)} disabled={busy || provider === "luma" || provider === "google"}><option value="5">5 ثوانٍ</option>{provider !== "luma" && <><option value="10">10 ثوانٍ</option><option value="15">15 ثانية</option></>}</select></label></div>
+    {provider === "fal" ? <label className="video-resolution-label">الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)} disabled={busy}><option value="2K">2K</option><option value="4K">4K (حسب دعم النموذج)</option><option value="1080p">1080p</option></select></label> : provider === "luma" ? <label className="video-resolution-label">الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)} disabled={busy}><option value="1080p">1080p</option><option value="4K">4K (خطة Pro)</option></select></label> : provider === "google" ? <p className="video-engine-note">Google Gemini Omni يولّد فيديو قصيراً بدقة 720p في هذا المسار؛ لا يضمن 2K أو 4K.</p> : <p className="video-engine-note">Runway يستخدم إعداد الدقة الافتراضي المدعوم من النموذج (حالياً 1080p)، ولا نضمن إخراج 2K أو 4K من هذا المسار.</p>}
     <button className="image-generate-btn" onClick={() => void createVideo()} disabled={busy || !prompt.trim()}>{busy ? <LoaderCircle size={17} className="spin" /> : <Play size={17} />}{busy ? "الفيديو قيد المعالجة..." : "إنشاء الفيديو"}</button>
     {notice && <p className="image-studio-notice" role="status">{notice} {notice.includes("سجّل الدخول") && <Link href="/login">تسجيل الدخول</Link>}</p>}
     {busy && <div className="video-progress"><LoaderCircle size={16} className="spin" /> الحالة: {status === "IN_PROGRESS" || status === "RUNNING" ? "المحرك ينشئ الفيديو الآن" : "في انتظار دور المحرك"} — قد يستغرق عدة دقائق.</div>}
