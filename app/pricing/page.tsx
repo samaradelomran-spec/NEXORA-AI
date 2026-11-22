@@ -67,7 +67,7 @@ export default function PricingPage() {
         <article className="pricing-card pricing-pro"><div className="pricing-popular"><Sparkles size={13} /> الخطة المتقدمة</div><div className="pricing-label">لصنّاع المحتوى والمحترفين</div><h2>Pro</h2><div className="pricing-price"><strong>$15</strong><span>/ شهرياً</span></div><p className="pricing-description">قدرات أوسع للمشاريع والاستخدام المكثف.</p><ul>{proFeatures.map((feature) => <li key={feature}><Check size={16} />{feature}</li>)}</ul>{hasPro ? <button className="pricing-primary" onClick={() => void manageSubscription()} disabled={busy}>إدارة اشتراك Pro</button> : <button className={paymentReady ? "pricing-primary" : "pricing-disabled"} onClick={() => void startCheckout()} disabled={!paymentReady || busy}>{busy ? "جارٍ تجهيز الدفع..." : paymentReady ? "الاشتراك في Pro" : "الاشتراك سيتاح بعد ربط الدفع"}</button>}</article>
       </div>
       {notice && <p className="project-message">{notice} {notice.includes("سجّل الدخول") && <Link href="/login">تسجيل الدخول</Link>}</p>}
-      <p className="pricing-footnote">قد تختلف حدود التوليد والدقة والميزات حسب المحرك المتصل وشروط مزوده. دقة 2K و4K متاحة كأهداف فقط عندما يدعمها النموذج المستخدم.</p>
+      <p className="pricing-footnote">دقة 2K و4K لا تتطلب اشتراك Pro، وتتوفر فقط عندما يدعمها المحرك وحساب المزود. قد يفرض مزود المحرك رسوماً مستقلة على التوليد؛ خطة Pro تضيف تحسين الواقعية السينمائية والتفاصيل وحدود استخدام أعلى.</p>
     </section>
   </main>;
 }
