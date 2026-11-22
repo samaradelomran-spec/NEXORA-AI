@@ -55,6 +55,9 @@ export default function Home() {
           const Icon = studio.icon;
           return <button key={studio.id} className={`nav-item ${active === studio.id ? "selected" : ""}`} onClick={() => { setActive(studio.id); setMobileOpen(false); }}><Icon size={18} />{studio.title.replace("استوديو ", "")}</button>;
         })}
+        <Link className="nav-item models-nav-link" href="/models"><Bot size={18} /> مكتبة المحركات</Link>
+        <Link className="nav-item models-nav-link" href="/projects"><Blocks size={18} /> مشاريعي</Link>
+        <Link className="nav-item models-nav-link" href="/pricing"><Sparkles size={18} /> الخطط والاشتراكات</Link>
         <div className="sidebar-bottom">
           <div className="plan-card"><div className="plan-top"><Sparkles size={16} /> <b>ابدأ رحلتك الإبداعية</b></div><p>ستظهر هنا تفاصيل خطتك واستخدامك بعد تفعيل الحسابات.</p><button onClick={() => setNotice("سيتم تفعيل الخطط والاشتراكات بعد إعداد نظام الحسابات والدفع.")}>استكشف الخطط <ArrowLeft size={15} /></button></div>
           <button className="nav-item"><Settings2 size={18} /> الإعدادات</button>
