@@ -41,6 +41,18 @@ export default function LoginPage() {
     }
   }
 
+  async function handlePasswordReset() {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !email.trim()) { setMessage("اكتب بريدك الإلكتروني أولاً."); return; }
+    setBusy(true);
+    setMessage("");
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/login`
+    });
+    setMessage(error ? error.message : "إذا كان البريد مسجلاً، ستصلك رسالة لإعادة تعيين كلمة المرور.");
+    setBusy(false);
+  }
+
   return (
     <main className="auth-shell">
       <section className="auth-card">
@@ -54,6 +66,7 @@ export default function LoginPage() {
           <button type="button" className={mode === "signup" ? "active" : ""} onClick={() => { setMode("signup"); setMessage(""); }}>حساب جديد</button>
         </div>
         <form onSubmit={handleSubmit} className="auth-form">
+          {mode === "signup" && <label><span>الاسم</span><input type="text" autoComplete="name" required value={name} onChange={(event) => setName(event.target.value)} placeholder="اسمك" /></label>}
           <label><span><Mail size={15} /> البريد الإلكتروني</span><input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" /></label>
           <label><span><LockKeyhole size={15} /> كلمة المرور</span><input type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="6 أحرف على الأقل" /></label>
           {mode === "login" && <button className="auth-reset" type="button" onClick={() => void handlePasswordReset()} disabled={busy}>نسيت كلمة المرور؟</button>}
