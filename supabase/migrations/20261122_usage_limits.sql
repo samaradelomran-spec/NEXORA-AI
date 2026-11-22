@@ -8,6 +8,10 @@ create table if not exists public.plan_limits (
   primary key (plan, service_type)
 );
 
+alter table public.plan_limits add column if not exists service_type text not null default 'all';
+alter table public.plan_limits drop constraint if exists plan_limits_pkey;
+alter table public.plan_limits add constraint plan_limits_pkey primary key (plan, service_type);
+
 insert into public.plan_limits (plan, service_type, daily_generation_limit) values
   ('free','assistant',10), ('free','web',3), ('free','games',3), ('free','cinema',3), ('free','series',3),
   ('free','image',1), ('free','video',1), ('free','audio',2), ('free','music',1), ('free','sound_effect',2),
