@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
-import { ArrowLeft, Eye, FolderKanban, LoaderCircle, Plus, Trash2, X } from "lucide-react";
+import { ArrowLeft, Eye, FolderKanban, LoaderCircle, Plus, Trash2 } from "lucide-react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
 type Project = { id: string; name: string; description: string | null; project_type: string; created_at: string; updated_at: string; content?: { source?: string; studio?: string; title?: string; prompt?: string; resolution?: string } | null };
