@@ -106,8 +106,8 @@ export default function Home() {
             {filtered.length === 0 && <div className="empty-state">ما لقينا استوديو بهذا الاسم. جرّب كلمة ثانية.</div>}
           </section>
 
-          <section className="bottom-note"><div className="note-icon"><Blocks size={20} /></div><div><b>منصة واحدة، إمكانيات متعددة</b><p>ستتم إضافة المشاريع المحفوظة، الحسابات، والمحركات المتصلة ضمن مراحل البناء التالية.</p></div><ChevronDown size={18} /></section>
-          <footer><span>© 2026 NEXORA AI</span><span>صُنع للإبداع بلا حدود</span><span>الإصدار الأولي · واجهة تجريبية</span></footer>
+          <section className="bottom-note"><div className="note-icon"><Blocks size={20} /></div><div><b>منصة واحدة، إمكانيات متعددة</b><p>تجمع NEXORA الاستوديوهات والحسابات والمشاريع ومكتبة المحركات في مكان واحد. تفعيل الخدمات يعتمد على إعداد مفاتيح المزودين واختبارها.</p></div><ChevronDown size={18} /></section>
+          <footer><span>© 2026 NEXORA AI</span><span>صُنع للإبداع بلا حدود</span><span>نسخة تطويرية · لم تُنشر بعد</span></footer>
         </div>
       </section>
       {notice && <div className="toast" role="status">{notice}</div>}
