@@ -72,7 +72,7 @@ export async function POST(request: Request) {
     if (safeMessages[safeMessages.length - 1]?.role !== "user") {
       return json({ error: "آخر رسالة يجب أن تكون من المستخدم." }, 400);
     }
-    const usage = await checkDailyGenerationLimit({ url: user.url, anon: user.anon, token: user.token, ownerId: user.id });
+    const usage = await checkDailyGenerationLimit({ url: user.url, anon: user.anon, token: user.token, ownerId: user.id, serviceType: studio });
     if (!usage.allowed) return json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, usage.reason === "limit" ? 429 : 503);
 
     const studioInstructions: Record<string, string> = {
