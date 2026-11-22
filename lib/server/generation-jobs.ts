@@ -19,6 +19,14 @@ export async function checkDailyGenerationLimit(args: UsageArgs): Promise<
 > {
   const headers = { apikey: args.anon, Authorization: "Bearer " + args.token };
   try {
+    const identityResponse = await fetch(args.url + "/auth/v1/user", { headers, cache: "no-store" });
+    if (identityResponse.ok) {
+      const identity = await identityResponse.json() as { email?: string };
+      const admins = (process.env.NEXORA_ADMIN_EMAILS || "").split(",").map((value) => value.trim().toLowerCase()).filter(Boolean);
+      if (identity.email && admins.includes(identity.email.toLowerCase())) {
+        return { allowed: true, used: 0, limit: Number.MAX_SAFE_INTEGER, plan: "pro" };
+      }
+    }
     const subscriptionResponse = await fetch(
       args.url + "/rest/v1/subscriptions?owner_id=eq." + args.ownerId + "&select=plan,status&limit=1",
       { headers, cache: "no-store" }
