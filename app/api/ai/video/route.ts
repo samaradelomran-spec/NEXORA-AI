@@ -91,7 +91,7 @@ export async function POST(request: Request) {
       if (!key) return Response.json({ error: "Gemini Omni Video يحتاج GOOGLE_AI_API_KEY في إعدادات الخادم." }, { status: 503 });
       const googleResolution = body.resolution === "4K" ? "4k" : body.resolution === "1080p" ? "1080p" : body.resolution === "720p" ? "720p" : "";
       if (!googleResolution) return Response.json({ error: "Gemini Omni لا يوفّر 2K أصلياً. اختر 720p أو 1080p أو 4K." }, { status: 400 });
-      if (googleResolution === "4k" && usage.plan !== "pro") return Response.json({ error: "دقة 4K عبر Gemini Omni متاحة لخطة Pro فقط." }, { status: 403 });
+      if (googleResolution === "4k" && usage.plan !== "pro") return Response.json({ error: "دقة 4K عبر Gemini Omni تتطلب خطة NEXORA Pro وإتاحة هذا الخيار في حساب Google AI." }, { status: 403 });
       resolution = googleResolution === "4k" ? "4K" : googleResolution;
       const submitted = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
         method: "POST",
