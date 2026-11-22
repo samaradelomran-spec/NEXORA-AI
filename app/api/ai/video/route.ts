@@ -73,12 +73,12 @@ export async function POST(request: Request) {
       const key = process.env.LUMA_API_KEY;
       model = process.env.LUMA_VIDEO_MODEL || "ray-2";
       if (!key || !["ray-2", "ray-flash-2"].includes(model)) return Response.json({ error: "Luma يحتاج LUMA_API_KEY ونموذج ray-2 أو ray-flash-2." }, { status: 503 });
-      if (body.resolution === "2K") return Response.json({ error: "Luma لا يوفّر خيار 2K في قائمة الدقات الحالية. اختر 1080p أو 4K." }, { status: 400 });
-      resolution = body.resolution === "4K" ? "4K" : "1080p";
+      if (body.resolution === "2K" || body.resolution === "4K") return Response.json({ error: "محرك Luma عبر هذا التكامل يوفّر حتى 1080p فقط. اختر 1080p أو محركاً آخر يدعم 4K." }, { status: 400 });
+      resolution = "1080p";
       const submitted = await fetch("https://api.lumalabs.ai/dream-machine/v1/generations/video", {
         method: "POST",
         headers: { Authorization: "Bearer " + key, "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ generation_type: "video", prompt, model, aspect_ratio: "16:9", resolution: resolution === "4K" ? "4k" : "1080p", duration: "5s" }),
+        body: JSON.stringify({ generation_type: "video", prompt, model, aspect_ratio: "16:9", resolution: "1080p", duration: "5s" }),
         cache: "no-store",
         signal: AbortSignal.timeout(50000)
       });
