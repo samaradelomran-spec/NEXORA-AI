@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     const text = body.text?.trim();
     const provider = body.provider === "google" ? "google" : "elevenlabs";
     if (!text || text.length > 10000) return Response.json({ error: "اكتب نصاً صوتياً لا يتجاوز 10000 حرف." }, { status: 400 });
-    const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id });
+    const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "audio" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
 
     let audio: Buffer;
