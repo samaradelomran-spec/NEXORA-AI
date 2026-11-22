@@ -137,3 +137,9 @@ footer{display:flex;justify-content:space-between;color:#606983;font:9px Inter,s
 .video-studio-panel{margin-top:18px;border:1px solid #8e75e544;border-radius:14px;background:#0d1220;padding:17px}
 .video-progress{display:flex;align-items:center;gap:8px;margin-top:12px;padding:11px;border:1px solid #8e75e533;border-radius:9px;background:#17152a;color:#c8baff;font-size:10px;line-height:1.7}
 .video-result{margin-top:15px;border:1px solid var(--line);border-radius:11px;padding:10px;background:#090d18}.video-result video{display:block;width:100%;max-height:620px;background:#000;border-radius:7px}.video-result a{display:block;text-align:center;color:#d7caff;text-decoration:none;font-size:10px;padding:11px 4px 2px}
+
+
+/* Audio generation workspace */
+.audio-studio-panel{margin-top:18px;border:1px solid #8e75e544;border-radius:14px;background:#0d1220;padding:17px}
+.audio-result{display:grid;gap:10px;margin-top:15px;border:1px solid var(--line);border-radius:11px;padding:12px;background:#090d18}.audio-result audio{width:100%}.audio-result a{display:flex;align-items:center;justify-content:center;gap:8px;color:#d7caff;text-decoration:none;font-size:11px}
+@media(max-width:560px){.audio-studio-panel{padding:13px}}
