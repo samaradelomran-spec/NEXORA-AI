@@ -38,10 +38,11 @@ export async function POST(request: Request) {
   if (!auth) return Response.json({ error: "سجّل الدخول أولاً لإنشاء الفيديو." }, { status: 401 });
 
   try {
-    const body = await request.json() as { prompt?: string; resolution?: string; provider?: string };
+    const body = await request.json() as { prompt?: string; resolution?: string; provider?: string; duration?: number };
     const prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 12000) return Response.json({ error: "اكتب وصفاً للفيديو لا يتجاوز 12000 حرف." }, { status: 400 });
     const provider = body.provider === "runway" ? "runway" : "fal";
+    const duration = [5, 10, 15].includes(Number(body.duration)) ? Number(body.duration) : 5;
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "video" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
     if (provider === "fal" && body.resolution === "4K" && usage.plan !== "pro") return Response.json({ error: "دقة 4K للفيديو متاحة لخطة Pro فقط." }, { status: 403 });
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
       const submitted = await fetch("https://api.dev.runwayml.com/v1/text_to_video", {
         method: "POST",
         headers: { Authorization: "Bearer " + key, "Content-Type": "application/json", "X-Runway-Version": "2024-11-06" },
-        body: JSON.stringify({ model, promptText: prompt, ratio: "1920:1080", duration: 5 }),
+        body: JSON.stringify({ model, promptText: prompt, ratio: "1920:1080", duration }),
         cache: "no-store",
         signal: AbortSignal.timeout(50000)
       });
@@ -71,11 +72,14 @@ export async function POST(request: Request) {
       model = falEndpoint;
       resolution = ["1080p", "2K", "4K"].includes(body.resolution || "") ? body.resolution! : "2K";
       const resolutionField = process.env.FAL_VIDEO_RESOLUTION_FIELD || "resolution";
+      let defaultParams: Record<string, unknown> = {};
+      try { defaultParams = JSON.parse(process.env.FAL_VIDEO_DEFAULT_PARAMS || "{}"); } catch { return Response.json({ error: "FAL_VIDEO_DEFAULT_PARAMS يجب أن يكون JSON صالحاً." }, { status: 500 }); }
+      if (!defaultParams || Array.isArray(defaultParams) || typeof defaultParams !== "object") return Response.json({ error: "FAL_VIDEO_DEFAULT_PARAMS يجب أن يكون كائناً JSON." }, { status: 500 });
       if (!/^[a-zA-Z0-9_]+$/.test(resolutionField)) return Response.json({ error: "اسم حقل الدقة في إعدادات fal غير صالح." }, { status: 500 });
       const submitted = await fetch("https://queue.fal.run/" + model, {
         method: "POST",
         headers: { Authorization: "Key " + key, "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, [resolutionField]: resolution }),
+        body: JSON.stringify({ ...defaultParams, prompt, [resolutionField]: resolution }),
         cache: "no-store",
         signal: AbortSignal.timeout(50000)
       });
