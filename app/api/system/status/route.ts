@@ -6,7 +6,7 @@ export async function GET() {
   const providerConfigs: { id: string; name: string; keys: string[]; required?: string[] }[] = [
     { id: "openai", name: "OpenAI", keys: ["OPENAI_API_KEY"] },
     { id: "anthropic", name: "Anthropic Claude", keys: ["ANTHROPIC_API_KEY"] },
-    { id: "google", name: "Google Gemini / Veo", keys: ["GOOGLE_AI_API_KEY", "GEMINI_API_KEY"] },
+    { id: "google", name: "Google Gemini / Omni Video", keys: ["GOOGLE_AI_API_KEY", "GEMINI_API_KEY"] },
     { id: "mistral", name: "Mistral AI", keys: ["MISTRAL_API_KEY"] },
     { id: "fal", name: "fal.ai", keys: ["FAL_KEY"] },
     { id: "fal_video", name: "fal.ai Video", keys: ["FAL_KEY"], required: ["FAL_VIDEO_MODEL"] },
