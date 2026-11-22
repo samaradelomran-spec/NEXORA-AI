@@ -77,9 +77,9 @@ export default function VideoStudio() {
         if (data.status === "COMPLETED" && data.videoUrl) {
           let playableUrl = data.videoUrl as string;
           const supabase = getSupabaseBrowserClient();
-          const accessToken = await token();
-          if (supabase && accessToken) {
-            const download = await fetch("/api/ai/video/download?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + accessToken } });
+          const downloadToken = await accessToken();
+          if (supabase && downloadToken) {
+            const download = await fetch("/api/ai/video/download?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + downloadToken } });
             if (download.ok) {
               const blob = await download.blob();
               const { data: { user } } = await supabase.auth.getUser();
