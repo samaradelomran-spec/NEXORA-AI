@@ -11,6 +11,7 @@ values (
 )
 on conflict (id) do nothing;
 
+drop policy if exists "NEXORA users can read their own files" on storage.objects;
 create policy "NEXORA users can read their own files"
 on storage.objects for select
 to authenticated
@@ -19,6 +20,7 @@ using (
   and (storage.foldername(name))[1] = auth.uid()::text
 );
 
+drop policy if exists "NEXORA users can upload their own files" on storage.objects;
 create policy "NEXORA users can upload their own files"
 on storage.objects for insert
 to authenticated
@@ -27,6 +29,7 @@ with check (
   and (storage.foldername(name))[1] = auth.uid()::text
 );
 
+drop policy if exists "NEXORA users can update their own files" on storage.objects;
 create policy "NEXORA users can update their own files"
 on storage.objects for update
 to authenticated
@@ -39,6 +42,7 @@ with check (
   and (storage.foldername(name))[1] = auth.uid()::text
 );
 
+drop policy if exists "NEXORA users can delete their own files" on storage.objects;
 create policy "NEXORA users can delete their own files"
 on storage.objects for delete
 to authenticated
