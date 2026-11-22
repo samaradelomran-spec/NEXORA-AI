@@ -31,13 +31,15 @@ export async function POST(request: Request) {
   try {
     const auth = await authenticatedUser(request);
     if (!auth) return Response.json({ error: "سجّل الدخول أولاً لإنشاء الصور." }, { status: 401 });
-    const body = await request.json() as { prompt?: string; resolution?: string; provider?: string };
-    const prompt = body.prompt?.trim();
+    const body = await request.json() as { prompt?: string; resolution?: string; provider?: string; realismBoost?: boolean };
+    let prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 12000) return Response.json({ error: "اكتب وصفاً للصورة لا يتجاوز 12000 حرف." }, { status: 400 });
     const resolution = ["1080p", "2K", "4K"].includes(body.resolution || "") ? body.resolution! : "2K";
     const provider = (["google", "openai", "stability", "fal"].includes(body.provider || "") ? body.provider : "openai") as "google" | "openai" | "stability" | "fal";
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "image" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
+    if (body.realismBoost && usage.plan !== "pro") return Response.json({ error: "تحسين الواقعية المتقدم متاح لخطة Pro." }, { status: 403 });
+    if (body.realismBoost) prompt += "\n\nEnhance photorealism: physically accurate lighting and materials, natural skin and fine texture detail where relevant, realistic depth and optics, coherent shadows, subtle imperfections, lifelike color response. Preserve the requested subject and composition; avoid artificial-looking overprocessing.";
     if (resolution === "4K" && (provider === "stability" || provider === "fal")) return Response.json({ error: "هذا المحرك لا يضمن 4K. اختر Gemini أو OpenAI لاستهداف 4K." }, { status: 400 });
 
     let image = "";
