@@ -1,5 +1,3 @@
-import { createHash } from "node:crypto";
-
 export const maxDuration = 90;
 
 async function getUser(request: Request) {
