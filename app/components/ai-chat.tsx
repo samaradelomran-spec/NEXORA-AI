@@ -41,7 +41,7 @@ export default function AIChat({ initialPrompt = "" }: { initialPrompt?: string 
   }
 
   return <section className="ai-chat-panel">
-    <div className="ai-chat-head"><div><span className="section-kicker">محادثة مباشرة عبر API</span><h3>المساعد الذكي</h3></div><select value={provider} onChange={(e) => setProvider(e.target.value as Provider)} disabled={busy}><option value="openai">OpenAI</option><option value="anthropic">Claude</option><option value="google">Gemini</option></select></div>
+    <div className="ai-chat-head"><div><span className="section-kicker">محادثة مباشرة عبر API</span><h3>المساعد الذكي</h3></div><select value={provider} onChange={(e) => setProvider(e.target.value as Provider)} disabled={busy}><option value="openai">OpenAI</option><option value="anthropic">Claude</option><option value="google">Gemini</option><option value="mistral">Mistral</option></select></div>
     <div className="ai-chat-messages">{messages.length === 0 ? <div className="ai-chat-empty"><Bot size={30} /><b>كيف أقدر أساعدك؟</b><span>اكتب طلبك، واختر المحرك المناسب. يلزم تسجيل الدخول وربط مفتاح المحرك.</span></div> : messages.map((message, index) => <article className={message.role === "user" ? "chat-message user-message" : "chat-message assistant-message"} key={index}><span>{message.role === "user" ? <UserRound size={16} /> : <Bot size={16} />}</span><p>{message.content}</p></article>)}
       {busy && <div className="chat-loading"><LoaderCircle size={16} /> المحرك يكتب الرد...</div>}
     </div>
