@@ -7,7 +7,7 @@ import Link from "next/link";
 import {
   ArrowLeft, AudioLines, Bell, Blocks, Bot, ChevronDown, Clapperboard,
   Code2, Film, Gamepad2, Image as ImageIcon, LayoutDashboard, Menu,
-  Plus, Search, Settings2, Sparkles, WandSparkles, Video, X
+  Plus, Search, Settings2, ShieldCheck, Sparkles, WandSparkles, Video, X
 } from "lucide-react";
 
 const studios = [
@@ -62,6 +62,7 @@ export default function Home() {
         <Link className="nav-item models-nav-link" href="/files"><Blocks size={18} /> التخزين السحابي</Link>
         <Link className="nav-item models-nav-link" href="/pricing"><Sparkles size={18} /> الخطط والاشتراكات</Link>
         <Link className="nav-item models-nav-link" href="/settings"><Settings2 size={18} /> الإعدادات وحالة الربط</Link>
+        <Link className="nav-item models-nav-link" href="/admin"><ShieldCheck size={18} /> لوحة الإدارة</Link>
         <div className="sidebar-bottom">
           <div className="plan-card"><div className="plan-top"><Sparkles size={16} /> <b>ابدأ رحلتك الإبداعية</b></div><p>ستظهر هنا تفاصيل خطتك واستخدامك بعد تفعيل الحسابات.</p><button onClick={() => setNotice("سيتم تفعيل الخطط والاشتراكات بعد إعداد نظام الحسابات والدفع.")}>استكشف الخطط <ArrowLeft size={15} /></button></div>
           <button className="nav-item"><Settings2 size={18} /> الإعدادات</button>
