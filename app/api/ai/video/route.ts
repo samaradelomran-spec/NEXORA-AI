@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       requestId = data.id;
     } else if (provider === "luma") {
       const key = process.env.LUMA_API_KEY;
-      const model = process.env.LUMA_VIDEO_MODEL || "ray-2";
+      model = process.env.LUMA_VIDEO_MODEL || "ray-2";
       if (!key || !["ray-2", "ray-flash-2"].includes(model)) return Response.json({ error: "Luma يحتاج LUMA_API_KEY ونموذج ray-2 أو ray-flash-2." }, { status: 503 });
       if (body.resolution === "2K") return Response.json({ error: "Luma لا يوفّر خيار 2K في قائمة الدقات الحالية. اختر 1080p أو 4K." }, { status: 400 });
       resolution = body.resolution === "4K" ? "4K" : "1080p";
