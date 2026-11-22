@@ -14,7 +14,7 @@
 ## تكاملات API الموجودة في الكود
 - النص والمساعد: OpenAI Responses API، Anthropic Messages API، Google Gemini Interactions API.
 - الصور: OpenAI Images API وGoogle Gemini 3.1 Flash Image، مع أهداف 1K/2K/4K بحسب إمكانات النموذج.
-- الفيديو: fal.ai Queue API وRunway Dev Tasks API، مع تحديد نقطة النهاية والنموذج عبر متغيرات البيئة.
+- الفيديو: fal.ai Queue API وRunway Dev Tasks API وRunway Music API، مع تحديد نقطة النهاية والنموذج عبر متغيرات البيئة.
 - الصوت: ElevenLabs Text-to-Speech وGoogle Gemini TTS.
 - الدفع: Stripe Checkout للاشتراك، Stripe Billing Portal، وWebhook موثّق لتحديث جدول الاشتراكات.
 
@@ -34,7 +34,7 @@
 - `ANTHROPIC_API_KEY` و`ANTHROPIC_MODEL`
 - `GOOGLE_AI_API_KEY` و`GEMINI_MODEL` و`GEMINI_IMAGE_MODEL`
 - `FAL_KEY` و`FAL_VIDEO_MODEL` و`FAL_VIDEO_RESOLUTION_FIELD`
-- `RUNWAY_API_KEY` و`RUNWAY_VIDEO_MODEL`
+- `RUNWAY_API_KEY` و`RUNWAY_VIDEO_MODEL` و`RUNWAY_MUSIC_MODEL`
 - `ELEVENLABS_API_KEY` و`ELEVENLABS_DEFAULT_VOICE_ID` و`ELEVENLABS_MODEL`
 - `GEMINI_TTS_MODEL` و`GEMINI_TTS_VOICE` (مع مفتاح Google)
 
