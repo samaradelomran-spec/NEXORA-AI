@@ -27,8 +27,19 @@ export default function ImageStudio() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إنشاء الصورة.");
-      setImage(`data:${data.mimeType};base64,${data.image}`);
-      setNotice(`تم إنشاء الصورة بدقة مستهدفة ${data.resolution}. ${data.model}`);
+      const preview = `data:${data.mimeType};base64,${data.image}`;
+      setImage(preview);
+      const bytes = Uint8Array.from(atob(data.image), (character) => character.charCodeAt(0));
+      const blob = new Blob([bytes], { type: data.mimeType });
+      const path = session.user.id + "/uploads/" + Date.now() + "-generated-image.png";
+      const { error: storageError } = await supabase.storage.from("nexora-files").upload(path, blob, { contentType: data.mimeType, upsert: false });
+      if (storageError) {
+        setNotice(`تم إنشاء الصورة بدقة مستهدفة ${data.resolution}، لكن التخزين السحابي لم يُفعّل بعد. ${data.model}`);
+      } else {
+        const { data: signed } = await supabase.storage.from("nexora-files").createSignedUrl(path, 3600);
+        if (signed?.signedUrl) setImage(signed.signedUrl);
+        setNotice(`تم إنشاء الصورة وحفظ نسخة منها سحابياً بدقة مستهدفة ${data.resolution}.`);
+      }
     } catch (error) {
       setNotice(error instanceof Error ? error.message : "حدث خطأ أثناء إنشاء الصورة.");
     } finally { setBusy(false); }
