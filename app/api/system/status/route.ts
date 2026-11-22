@@ -24,6 +24,7 @@ export async function GET() {
 
   return Response.json({
     database: configured("NEXT_PUBLIC_SUPABASE_URL") && configured("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    admin: configured("SUPABASE_SERVICE_ROLE_KEY") && configured("NEXORA_ADMIN_EMAILS"),
     providers,
     payments: {
       stripe: configured("STRIPE_SECRET_KEY") && configured("STRIPE_WEBHOOK_SECRET")
