@@ -77,9 +77,9 @@ export async function POST(request: Request) {
       if (!key) return json({ error: "محرك Claude غير مربوط بعد. أضف ANTHROPIC_API_KEY في إعدادات الاستضافة." }, 503);
       response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+        headers: { "x-api-key": key, "anthropic-version": "2026-10-21", "content-type": "application/json" },
         body: JSON.stringify({
-          model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6",
+          model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5",
           system: systemInstruction,
           messages: safeMessages.map((item) => ({ role: item.role, content: item.content })),
           max_tokens: 1800
