@@ -43,6 +43,7 @@ export async function POST(request: Request) {
     if (!prompt || prompt.length > 12000) return Response.json({ error: "اكتب وصفاً للفيديو لا يتجاوز 12000 حرف." }, { status: 400 });
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "video" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
+    if (provider === "fal" && body.resolution === "4K" && usage.plan !== "pro") return Response.json({ error: "دقة 4K للفيديو متاحة لخطة Pro فقط." }, { status: 403 });
     const provider = body.provider === "runway" ? "runway" : "fal";
     const jobId = randomUUID();
     let requestId = "";
