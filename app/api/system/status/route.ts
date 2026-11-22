@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 const configured = (name: string) => Boolean(process.env[name]?.trim());
 
 export async function GET() {
-  const providers: { id: string; name: string; keys: string[]; required?: string[] }[] = [
+  const providerConfigs: { id: string; name: string; keys: string[]; required?: string[] }[] = [
     { id: "openai", name: "OpenAI", keys: ["OPENAI_API_KEY"] },
     { id: "anthropic", name: "Anthropic Claude", keys: ["ANTHROPIC_API_KEY"] },
     { id: "google", name: "Google Gemini / Veo", keys: ["GOOGLE_AI_API_KEY", "GEMINI_API_KEY"] },
@@ -16,7 +16,8 @@ export async function GET() {
     { id: "elevenlabs", name: "ElevenLabs", keys: ["ELEVENLABS_API_KEY"], required: ["ELEVENLABS_DEFAULT_VOICE_ID"] },
     { id: "deepgram", name: "Deepgram", keys: ["DEEPGRAM_API_KEY"] },
     { id: "assemblyai", name: "AssemblyAI", keys: ["ASSEMBLYAI_API_KEY"] }
-  ].map((provider) => ({
+  ];
+  const providers = providerConfigs.map((provider) => ({
     id: provider.id,
     name: provider.name,
     configured: provider.keys.some(configured) && (provider.required || []).every(configured)
