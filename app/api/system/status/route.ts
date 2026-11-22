@@ -12,7 +12,7 @@ export async function GET() {
     { id: "stability", name: "Stability AI", keys: ["STABILITY_API_KEY"] },
     { id: "runway", name: "Runway", keys: ["RUNWAY_API_KEY"], required: ["RUNWAY_VIDEO_MODEL"] },
     { id: "kling", name: "Kling AI", keys: ["KLING_API_KEY"] },
-    { id: "luma", name: "Luma", keys: ["LUMA_API_KEY"] },
+    { id: "luma", name: "Luma", keys: ["LUMA_API_KEY"], required: ["LUMA_VIDEO_MODEL"] },
     { id: "elevenlabs", name: "ElevenLabs", keys: ["ELEVENLABS_API_KEY"], required: ["ELEVENLABS_DEFAULT_VOICE_ID"] },
     { id: "deepgram", name: "Deepgram", keys: ["DEEPGRAM_API_KEY"] },
     { id: "assemblyai", name: "AssemblyAI", keys: ["ASSEMBLYAI_API_KEY"] }
