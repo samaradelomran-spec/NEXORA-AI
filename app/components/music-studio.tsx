@@ -56,7 +56,27 @@ export default function MusicStudio() {
         if (!active) return;
         if (!response.ok) throw new Error(data.error || "تعذر فحص الموسيقى.");
         setStatus(data.status);
-        if (data.status === "COMPLETED" && data.audioUrl) { setAudioUrl(data.audioUrl); setBusy(false); setNotice(kind === "music" ? "اكتمل إنشاء المقطع الموسيقي." : "اكتمل إنشاء المؤثر الصوتي."); return; }
+        if (data.status === "COMPLETED" && data.audioUrl) {
+          let playableUrl = data.audioUrl as string;
+          const supabase = getSupabaseBrowserClient();
+          const accessToken = await token();
+          if (supabase && accessToken) {
+            const download = await fetch("/api/ai/music/download?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + accessToken } });
+            if (download.ok) {
+              const blob = await download.blob();
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                const path = user.id + "/uploads/" + jobId + (kind === "music" ? "-music.mp3" : "-sound-effect.mp3");
+                const { error: storageError } = await supabase.storage.from("nexora-files").upload(path, blob, { contentType: blob.type || "audio/mpeg", upsert: true });
+                if (!storageError) {
+                  const { data: signed } = await supabase.storage.from("nexora-files").createSignedUrl(path, 3600);
+                  if (signed?.signedUrl) playableUrl = signed.signedUrl;
+                }
+              }
+            }
+          }
+          setAudioUrl(playableUrl); setBusy(false); setNotice(kind === "music" ? "اكتمل إنشاء المقطع الموسيقي." : "اكتمل إنشاء المؤثر الصوتي."); return;
+        }
         if (data.status === "FAILED") { setBusy(false); setNotice(data.error || "فشل إنشاء الموسيقى."); return; }
         timer = setTimeout(poll, 5000);
       } catch (error) {
