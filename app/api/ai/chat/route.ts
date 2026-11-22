@@ -58,9 +58,10 @@ export async function POST(request: Request) {
     const user = await getAuthenticatedUser(request);
     if (!user) return json({ error: "سجّل الدخول أولاً حتى تستخدم المساعد الذكي." }, 401);
 
-    const body = await request.json() as { provider?: Provider; messages?: ChatMessage[] };
+    const body = await request.json() as { provider?: Provider; messages?: ChatMessage[]; studio?: string };
     const provider = body.provider;
     const messages = body.messages;
+    const studio = ["web", "games", "cinema", "series"].includes(body.studio || "") ? body.studio! : "assistant";
     if (!["openai", "anthropic", "google"].includes(String(provider))) {
       return json({ error: "اختر محركاً مدعوماً." }, 400);
     }
@@ -78,7 +79,14 @@ export async function POST(request: Request) {
       return json({ error: "آخر رسالة يجب أن تكون من المستخدم." }, 400);
     }
 
-    const systemInstruction = "أنت مساعد NEXORA AI. أجب بدقة ووضوح، وبلغة المستخدم، ولا تدّع تنفيذ إجراءات أو إنشاء ملفات لم تنفذها فعلياً.";
+    const studioInstructions: Record<string, string> = {
+      assistant: "أنت مساعد NEXORA AI. أجب بدقة ووضوح، وبلغة المستخدم، ولا تدّع تنفيذ إجراءات أو إنشاء ملفات لم تنفذها فعلياً.",
+      web: "أنت مهندس برمجيات ومطور مواقع وتطبيقات في NEXORA AI. أنشئ خطة تنفيذ واضحة ثم أمثلة كود عملية قابلة للتشغيل، مع هيكل الملفات وتعليمات التشغيل. اسأل فقط إذا كانت معلومة أساسية ناقصة. لا تدّع أنك نشرت الموقع.",
+      games: "أنت مصمم ألعاب ومهندس تطوير ألعاب في NEXORA AI. أنشئ وثيقة تصميم لعبة تشمل الفكرة والميكانيكيات والمراحل والشخصيات وواجهة اللعب، وأضف نموذج كود أولي عند الحاجة. لا تدّع أنك بنيت ملف لعبة جاهزاً ما لم تفعل ذلك.",
+      cinema: "أنت كاتب سيناريو ومخرج سينمائي في NEXORA AI. طوّر الفكرة إلى معالجة سينمائية ومشاهد وحوار ووصف لقطات وحركة كاميرا وصوت وإضاءة، مع الحفاظ على طلب المستخدم.",
+      series: "أنت كاتب مسلسلات في NEXORA AI. ابنِ عالم المسلسل والشخصيات وأقواسها وخريطة الحلقات ثم اكتب المشاهد والحوار بالتفصيل وفق طلب المستخدم."
+    };
+    const systemInstruction = studioInstructions[studio];
     let response: Response;
     let answer = "";
 
@@ -133,8 +141,8 @@ export async function POST(request: Request) {
     }
 
     if (!answer.trim()) return json({ error: "عاد المحرك برد فارغ. جرّب مرة أخرى." }, 502);
-    await recordJob(request, user.id, "assistant", safeMessages[safeMessages.length - 1].content, { provider });
-    return json({ answer, provider });
+    await recordJob(request, user.id, studio, safeMessages[safeMessages.length - 1].content, { provider });
+    return json({ answer, provider, studio });
   } catch {
     return json({ error: "حدث خطأ غير متوقع أثناء الاتصال بالمحرك. حاول مرة أخرى." }, 500);
   }
