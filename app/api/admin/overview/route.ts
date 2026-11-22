@@ -21,13 +21,14 @@ export async function GET(request: Request) {
   if (!url || !serviceKey) return Response.json({ error: "إعداد المفتاح الإداري للخادم غير مكتمل." }, { status: 503 });
   const headers = { apikey: serviceKey, Authorization: "Bearer " + serviceKey };
   try {
-    const [usersResponse, profilesResponse, subscriptionsResponse, jobsResponse] = await Promise.all([
+    const [usersResponse, profilesResponse, subscriptionsResponse, jobsResponse, limitsResponse] = await Promise.all([
       fetch(url + "/auth/v1/admin/users?page=1&per_page=100", { headers, cache: "no-store" }),
       fetch(url + "/rest/v1/profiles?select=id,display_name,created_at&order=created_at.desc&limit=100", { headers, cache: "no-store" }),
       fetch(url + "/rest/v1/subscriptions?select=owner_id,plan,status,current_period_end", { headers, cache: "no-store" }),
-      fetch(url + "/rest/v1/generation_jobs?select=id,owner_id,service_type,status,created_at&order=created_at.desc&limit=100", { headers, cache: "no-store" })
+      fetch(url + "/rest/v1/generation_jobs?select=id,owner_id,service_type,status,created_at&order=created_at.desc&limit=100", { headers, cache: "no-store" }),
+      fetch(url + "/rest/v1/plan_limits?select=plan,service_type,daily_generation_limit&order=plan.asc,service_type.asc", { headers, cache: "no-store" })
     ]);
-    if (![usersResponse, profilesResponse, subscriptionsResponse, jobsResponse].every((response) => response.ok)) {
+    if (![usersResponse, profilesResponse, subscriptionsResponse, jobsResponse, limitsResponse].every((response) => response.ok)) {
       return Response.json({ error: "تعذر تحميل بيانات لوحة الإدارة. تحقق من صلاحيات المفتاح الإداري." }, { status: 502 });
     }
     const [usersData, profiles, subscriptions, jobs] = await Promise.all([
@@ -55,7 +56,7 @@ export async function GET(request: Request) {
         activeSubscriptions: (subscriptions || []).filter((item: any) => item.status === "active" && item.plan !== "free").length
       },
       users,
-      jobs: jobs || []
+      jobs: jobs || [],\n      limits: limits || []
     }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return Response.json({ error: "حدث خطأ أثناء تحميل لوحة الإدارة." }, { status: 500 });
