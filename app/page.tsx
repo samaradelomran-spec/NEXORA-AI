@@ -5,20 +5,21 @@ import StudioWorkspace from "./components/studio-workspace";
 import AccountControl from "./components/account-control";
 import Link from "next/link";
 import {
-  ArrowLeft, AudioLines, Bell, Blocks, Bot, ChevronDown, Clapperboard,
+  ArrowLeft, AudioLines, Bell, Blocks, Bot, Check, ChevronLeft, Clapperboard,
   Code2, Film, Gamepad2, Image as ImageIcon, LayoutDashboard, Menu,
-  Plus, Search, Settings2, ShieldCheck, Sparkles, WandSparkles, Video, X
+  Search, Settings2, ShieldCheck, Sparkles, WandSparkles, Video, X, FolderOpen,
+  Layers3, Zap, Command, CircleHelp
 } from "lucide-react";
 
 const studios = [
-  { id: "web", title: "استوديو المواقع والتطبيقات", desc: "حوّل فكرتك إلى موقع أو تطبيق متكامل.", icon: Code2, color: "violet", tag: "الأكثر استخداماً" },
-  { id: "games", title: "استوديو الألعاب", desc: "ابتكر عوالم وشخصيات وتجارب ألعاب.", icon: Gamepad2, color: "blue", tag: "جديد" },
-  { id: "images", title: "استوديو الصور", desc: "أنشئ الصور وعدّلها وارفع جودتها.", icon: ImageIcon, color: "pink", tag: "2K عند الدعم" },
-  { id: "videos", title: "استوديو الفيديو", desc: "حوّل النصوص والأفكار إلى فيديو.", icon: Video, color: "cyan", tag: "2K / 4K حسب المحرك" },
-  { id: "cinema", title: "استوديو السينما والأفلام", desc: "خطّط المشاهد واللقطات والأفلام.", icon: Clapperboard, color: "amber", tag: "سينمائي" },
-  { id: "series", title: "استوديو المسلسلات", desc: "طوّر الحلقات والشخصيات والسيناريو.", icon: Film, color: "rose", tag: "قصص طويلة" },
-  { id: "audio", title: "استوديو الصوت", desc: "تعليق صوتي ومؤثرات وموسيقى.", icon: AudioLines, color: "green", tag: "صوت" },
-  { id: "assistant", title: "المساعد الذكي", desc: "اسأل، خطّط، حلّل وابدأ أي مشروع.", icon: Bot, color: "indigo", tag: "متعدد المهام" }
+  { id: "web", title: "استوديو المواقع والتطبيقات", desc: "ابنِ مواقع وتطبيقات متكاملة من وصف بسيط.", icon: Code2, color: "violet", tag: "إنشاء وتطوير" },
+  { id: "games", title: "استوديو الألعاب", desc: "صمّم عوالم وشخصيات وتجارب تفاعلية.", icon: Gamepad2, color: "blue", tag: "تجارب تفاعلية" },
+  { id: "images", title: "استوديو الصور", desc: "أنشئ الصور، حرّرها، وحسّن تفاصيلها.", icon: ImageIcon, color: "pink", tag: "صورة وتصميم" },
+  { id: "videos", title: "استوديو الفيديو", desc: "حوّل النصوص والأفكار إلى فيديو.", icon: Video, color: "cyan", tag: "فيديو ذكي" },
+  { id: "cinema", title: "استوديو السينما والأفلام", desc: "خطّط المشاهد واللقطات والأفلام.", icon: Clapperboard, color: "amber", tag: "إنتاج سينمائي" },
+  { id: "series", title: "استوديو المسلسلات", desc: "طوّر الحلقات والشخصيات والسيناريو.", icon: Film, color: "rose", tag: "سرد قصصي" },
+  { id: "audio", title: "استوديو الصوت", desc: "أنشئ التعليق الصوتي والمؤثرات والموسيقى.", icon: AudioLines, color: "green", tag: "صوت وموسيقى" },
+  { id: "assistant", title: "المساعد الذكي", desc: "اسأل، خطّط، حلّل وابدأ أي مشروع.", icon: Bot, color: "indigo", tag: "مساعد متعدد المهام" }
 ];
 
 const suggestions = ["أنشئ موقعاً لمتجر إلكتروني", "صمّم شخصية لعبة خيالية", "اكتب فكرة إعلان فيديو قصير"];
@@ -36,81 +37,101 @@ export default function Home() {
 
   const startStudio = (title: string, id: string) => {
     setActive(id);
-    setNotice(`تم فتح ${title}. يمكنك إعداد فكرتك وحفظها كمسودة.`);
+    setNotice(`تم فتح ${title}. يمكنك الآن إعداد فكرتك وحفظها كمسودة.`);
     window.setTimeout(() => setNotice(""), 5000);
-    document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
-    <main className="app-shell">
-      <aside className={`sidebar ${mobileOpen ? "sidebar-open" : ""}`}>
-        <div className="brand">
-          <div className="brand-mark"><Sparkles size={23} /></div>
-          <div><strong>NEXORA<span> AI</span></strong><small>CREATE WITHOUT LIMITS</small></div>
-          <button className="icon-btn mobile-close" onClick={() => setMobileOpen(false)} aria-label="إغلاق القائمة"><X /></button>
-        </div>
-        <div className="side-label">مساحة العمل</div>
-        <button className={`nav-item ${active === "all" ? "selected" : ""}`} onClick={() => setActive("all")}><LayoutDashboard size={18} /> نظرة عامة</button>
-        <div className="side-label">الاستوديوهات</div>
+    <main className="nx-shell">
+      <aside className={`nx-sidebar ${mobileOpen ? "nx-sidebar-open" : ""}`}>
+        <Link href="/" className="nx-brand">
+          <span className="nx-brand-mark">N</span>
+          <span><b>NEXORA <i>AI</i></b><small>CREATIVE INTELLIGENCE</small></span>
+          <button className="nx-icon-btn nx-mobile-close" onClick={(event) => { event.preventDefault(); setMobileOpen(false); }} aria-label="إغلاق القائمة"><X size={18} /></button>
+        </Link>
+        <div className="nx-side-caption">WORKSPACE</div>
+        <button className={`nx-nav-item ${active === "all" ? "is-active" : ""}`} onClick={() => { setActive("all"); setMobileOpen(false); }}><LayoutDashboard size={17} /> نظرة عامة</button>
+        <div className="nx-side-caption">AI STUDIOS</div>
         {studios.map((studio) => {
           const Icon = studio.icon;
-          return <button key={studio.id} className={`nav-item ${active === studio.id ? "selected" : ""}`} onClick={() => { setActive(studio.id); setMobileOpen(false); }}><Icon size={18} />{studio.title.replace("استوديو ", "")}</button>;
+          return <button key={studio.id} className={`nx-nav-item ${active === studio.id ? "is-active" : ""}`} onClick={() => { setActive(studio.id); setMobileOpen(false); }}><Icon size={17} />{studio.title.replace("استوديو ", "")}</button>;
         })}
-        <Link className="nav-item models-nav-link" href="/models"><Bot size={18} /> مكتبة المحركات</Link>
-        <Link className="nav-item models-nav-link" href="/projects"><Blocks size={18} /> مشاريعي</Link>
-        <Link className="nav-item models-nav-link" href="/activity"><Bell size={18} /> سجل العمليات</Link>
-        <Link className="nav-item models-nav-link" href="/files"><Blocks size={18} /> التخزين السحابي</Link>
-        <Link className="nav-item models-nav-link" href="/pricing"><Sparkles size={18} /> الخطط والاشتراكات</Link>
-        <Link className="nav-item models-nav-link" href="/settings"><Settings2 size={18} /> الإعدادات وحالة الربط</Link>
-        <Link className="nav-item models-nav-link" href="/admin"><ShieldCheck size={18} /> لوحة الإدارة</Link>
-        <div className="sidebar-bottom">
-          <div className="plan-card"><div className="plan-top"><Sparkles size={16} /> <b>ابدأ رحلتك الإبداعية</b></div><p>ستظهر هنا تفاصيل خطتك واستخدامك بعد تفعيل الحسابات.</p><button onClick={() => window.location.assign("/pricing")}>استكشف الخطط <ArrowLeft size={15} /></button></div>
-          <Link className="nav-item" href="/settings"><Settings2 size={18} /> الإعدادات</Link>
+        <div className="nx-side-caption">YOUR SPACE</div>
+        <Link className="nx-nav-item" href="/projects"><FolderOpen size={17} /> مشاريعي</Link>
+        <Link className="nx-nav-item" href="/files"><Blocks size={17} /> ملفاتي السحابية</Link>
+        <Link className="nx-nav-item" href="/models"><Layers3 size={17} /> مكتبة المحركات</Link>
+        <Link className="nx-nav-item" href="/activity"><Bell size={17} /> سجل العمليات</Link>
+        <div className="nx-sidebar-bottom">
+          <div className="nx-upgrade">
+            <div className="nx-upgrade-icon"><Zap size={17} /></div>
+            <b>ارتقِ بتجربتك</b>
+            <p>اكتشف مزايا Pro وحدود الاستخدام الأعلى.</p>
+            <Link href="/pricing">استكشف الخطط <ArrowLeft size={14} /></Link>
+          </div>
+          <Link className="nx-nav-item" href="/settings"><Settings2 size={17} /> الإعدادات</Link>
+          <Link className="nx-nav-item" href="/admin"><ShieldCheck size={17} /> لوحة الإدارة</Link>
         </div>
       </aside>
 
-      {mobileOpen && <button className="scrim" onClick={() => setMobileOpen(false)} aria-label="إغلاق القائمة" />}
+      {mobileOpen && <button className="nx-scrim" onClick={() => setMobileOpen(false)} aria-label="إغلاق القائمة" />}
 
-      <section className="main-area">
-        <header className="topbar">
-          <button className="icon-btn mobile-menu" onClick={() => setMobileOpen(true)} aria-label="فتح القائمة"><Menu /></button>
-          <div className="breadcrumb">مساحة العمل <span>/</span> <b>نظرة عامة</b></div>
-          <div className="top-actions"><button className="icon-btn" aria-label="البحث عن استوديو" title="البحث عن استوديو" onClick={() => { document.getElementById("studio-search-input")?.focus(); document.getElementById("studios")?.scrollIntoView({ behavior: "smooth" }); }}><Search size={18} /></button><Link className="icon-btn notification" href="/activity" aria-label="سجل العمليات" title="سجل العمليات"><Bell size={18} /></Link><AccountControl /></div>
+      <section className="nx-main">
+        <header className="nx-topbar">
+          <div className="nx-topbar-start">
+            <button className="nx-icon-btn nx-mobile-menu" onClick={() => setMobileOpen(true)} aria-label="فتح القائمة"><Menu size={19} /></button>
+            <div className="nx-breadcrumb"><span>مساحة العمل</span><ChevronLeft size={13} /><b>{active === "all" ? "نظرة عامة" : studios.find((s) => s.id === active)?.title}</b></div>
+          </div>
+          <div className="nx-topbar-actions">
+            <button className="nx-search-shortcut" onClick={() => { document.getElementById("nx-studio-search")?.focus(); document.getElementById("nx-studios")?.scrollIntoView({ behavior: "smooth" }); }}><Search size={16} /><span>ابحث عن أداة...</span><kbd>⌘ K</kbd></button>
+            <Link href="/activity" className="nx-icon-btn" aria-label="الإشعارات"><Bell size={17} /></Link>
+            <AccountControl />
+          </div>
         </header>
 
-        <div className="content">
-          <section className="hero">
-            <div className="hero-orb orb-one" /><div className="hero-orb orb-two" />
-            <div className="hero-content">
-              <div className="eyebrow"><span className="live-dot" /> مساحة الإبداع الذكي</div>
-              <h1>كل أفكارك تبدأ من <span>هنا.</span></h1>
-              <p>من الفكرة الأولى إلى النتيجة النهائية، اجمع أقوى أدوات الإبداع بالذكاء الاصطناعي في مساحة واحدة.</p>
-              <a className="hero-link" href="#studios">اكتشف الاستوديوهات <ArrowLeft size={17} /></a>
+        <div className="nx-content">
+          <section className="nx-hero">
+            <div className="nx-hero-copy">
+              <div className="nx-eyebrow"><span /> منصة إبداع متكاملة بالذكاء الاصطناعي</div>
+              <h1>من الفكرة إلى <em>الإنجاز.</em><br />كل أدواتك في مساحة واحدة.</h1>
+              <p>أنشئ مواقع وصوراً وفيديو وألعاباً ومشاريع إبداعية عبر مساحة عمل واحدة مصممة لتمنحك تحكماً أكبر وسير عمل أكثر سلاسة.</p>
+              <div className="nx-hero-actions">
+                <a href="#nx-studios" className="nx-primary-btn">استكشف الاستوديوهات <ArrowLeft size={16} /></a>
+                <Link href="/projects" className="nx-quiet-btn">مشاريعي <FolderOpen size={16} /></Link>
+              </div>
+              <div className="nx-trust-line"><span><Check size={13} /> مساحة عمل موحدة</span><span><Check size={13} /> مشاريعك في مكان واحد</span><span><Check size={13} /> محركات متعددة حسب الإعداد</span></div>
             </div>
-            <div className="hero-symbol"><div className="symbol-ring ring-a" /><div className="symbol-ring ring-b" /><div className="symbol-core"><WandSparkles size={43} /></div><span className="spark spark-a">✦</span><span className="spark spark-b">✧</span></div>
-            <div className="hero-foot"><span>01 / WORKSPACE</span><span>خيالك هو نقطة البداية</span></div>
+            <div className="nx-hero-art" aria-hidden="true">
+              <div className="nx-art-grid" />
+              <div className="nx-art-glow" />
+              <div className="nx-orbit nx-orbit-one" /><div className="nx-orbit nx-orbit-two" />
+              <div className="nx-glass-tile"><div className="nx-tile-top"><span /><span /><span /><small> NEXORA / STUDIO</small></div><div className="nx-tile-logo">N</div><div className="nx-tile-bottom"><i /><i /><i /><i /></div></div>
+              <div className="nx-float-card nx-float-a"><ImageIcon size={16} /><span>إنشاء بصري</span><b>01</b></div>
+              <div className="nx-float-card nx-float-b"><Video size={16} /><span>استوديو الفيديو</span><b>02</b></div>
+              <div className="nx-art-caption">CREATE · BUILD · IMAGINE</div>
+            </div>
+            <div className="nx-hero-index">N° 01 <span>CREATIVE WORKSPACE</span></div>
           </section>
 
-          <section className="prompt-panel" id="workspace">
-            <div className="prompt-heading"><div><span className="section-kicker">ابدأ الآن</span><h2>ما الذي تريد إنشاءه اليوم؟</h2></div><span className="prompt-icon"><Sparkles size={20} /></span></div>
-            <div className="prompt-input-wrap"><textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="اكتب فكرتك هنا... صف ما تريد إنشاءه بالتفصيل" rows={3} /><button className="generate-btn" onClick={() => { if (!prompt.trim()) { setNotice("اكتب فكرتك أولاً، ثم اضغط ابدأ الإنشاء."); return; } setActive("assistant"); setNotice("تم تجهيز فكرتك في المساعد الذكي. اضغط إرسال لبدء العمل."); window.setTimeout(() => document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth" }), 100); }}>ابدأ الإنشاء <WandSparkles size={17} /></button></div>
-            <div className="suggestions">{suggestions.map((item) => <button key={item} onClick={() => setPrompt(item)}>{item}</button>)}</div>
+          <section className="nx-prompt-panel" id="workspace">
+            <div className="nx-prompt-heading"><div><span className="nx-overline">ابدأ من هنا</span><h2>ما الذي تريد إنجازه اليوم؟</h2><p>اكتب فكرتك وسنساعدك في اختيار مساحة العمل المناسبة.</p></div><span className="nx-prompt-mark"><WandSparkles size={21} /></span></div>
+            <div className="nx-prompt-entry"><textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} placeholder="صف فكرتك بالتفصيل... مثلاً: أريد إنشاء إعلان سينمائي لمنتج جديد" rows={2} /><button onClick={() => { if (!prompt.trim()) { setNotice("اكتب فكرتك أولاً، ثم ابدأ."); return; } setActive("assistant"); setNotice("تم تجهيز فكرتك في المساعد الذكي. يمكنك متابعة إعدادها أدناه."); window.setTimeout(() => document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth" }), 100); }}>ابدأ الإنشاء <WandSparkles size={16} /></button></div>
+            <div className="nx-suggestions">{suggestions.map((item) => <button key={item} onClick={() => setPrompt(item)}>{item}</button>)}</div>
           </section>
 
           {active !== "all" && (() => { const selected = studios.find((item) => item.id === active); return selected ? <StudioWorkspace id={selected.id} title={selected.title} desc={selected.desc} initialPrompt={selected.id === "assistant" ? prompt : ""} /> : null; })()}
 
-          <section className="studios-section" id="studios">
-            <div className="section-heading"><div><span className="section-kicker">مساحة أدواتك</span><h2>استوديوهات NEXORA</h2><p>اختر الاستوديو المناسب وحوّل فكرتك إلى مشروع.</p></div><div className="studio-search"><Search size={17} /><input id="studio-search-input" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن استوديو..." aria-label="ابحث عن استوديو" /></div></div>
-            <div className="filter-row"><button className={active === "all" ? "filter active-filter" : "filter"} onClick={() => setActive("all")}>الكل <span>08</span></button>{studios.map((s) => <button key={s.id} className={active === s.id ? "filter active-filter" : "filter"} onClick={() => setActive(s.id)}>{s.title.replace("استوديو ", "").replace(" والمشاريع", "")}</button>)}</div>
-            <div className="studio-grid">{filtered.map((studio) => { const Icon = studio.icon; return <article className="studio-card" key={studio.id}><div className={`studio-icon ${studio.color}`}><Icon size={23} /></div><span className="studio-tag">{studio.tag}</span><h3>{studio.title}</h3><p>{studio.desc}</p><button className="card-action" onClick={() => startStudio(studio.title, studio.id)}>افتح الاستوديو <ArrowLeft size={16} /></button></article>; })}</div>
-            {filtered.length === 0 && <div className="empty-state">ما لقينا استوديو بهذا الاسم. جرّب كلمة ثانية.</div>}
+          <section className="nx-studios-section" id="nx-studios">
+            <div className="nx-section-head"><div><span className="nx-overline">مساحة أدواتك</span><h2>استوديوهات <i>NEXORA</i></h2><p>كل تخصص إبداعي له مساحة وأدوات مخصصة.</p></div><label className="nx-studio-search"><Search size={16} /><input id="nx-studio-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن استوديو..." /></label></div>
+            <div className="nx-studio-grid">{filtered.map((studio, index) => { const Icon = studio.icon; return <article className="nx-studio-card" key={studio.id}><div className="nx-card-top"><span className={`nx-studio-icon ${studio.color}`}><Icon size={21} /></span><small>0{index + 1} / 08</small></div><span className="nx-studio-tag">{studio.tag}</span><h3>{studio.title}</h3><p>{studio.desc}</p><button onClick={() => startStudio(studio.title, studio.id)}>افتح الاستوديو <ArrowLeft size={15} /></button></article>; })}</div>
+            {filtered.length === 0 && <div className="nx-empty">ما لقينا استوديو بهذا الاسم. جرّب كلمة ثانية.</div>}
           </section>
 
-          <section className="bottom-note"><div className="note-icon"><Blocks size={20} /></div><div><b>منصة واحدة، إمكانيات متعددة</b><p>تجمع NEXORA الاستوديوهات والحسابات والمشاريع ومكتبة المحركات في مكان واحد. تفعيل الخدمات يعتمد على إعداد مفاتيح المزودين واختبارها.</p></div><ChevronDown size={18} /></section>
-          <footer><span>© 2026 NEXORA AI</span><span>صُنع للإبداع بلا حدود</span><span>نسخة تطويرية · لم تُنشر بعد</span></footer>
+          <section className="nx-bottom-strip"><div className="nx-bottom-symbol"><Command size={19} /></div><div><b>مساحة واحدة. سير عمل أكثر وضوحاً.</b><p>تُحفظ مشاريعك ومسوداتك ضمن حسابك عند تفعيل خدمات الحساب والتخزين. توفر التوليد يعتمد على إعداد واختبار محركات الذكاء الاصطناعي.</p></div><Link href="/pricing">عرض الخطط <ArrowLeft size={14} /></Link></section>
+          <footer className="nx-footer"><span>© 2026 NEXORA AI</span><span>صُممت لتوسيع آفاق الإبداع</span><Link href="/settings"><CircleHelp size={13} /> المساعدة والإعدادات</Link></footer>
         </div>
       </section>
-      {notice && <div className="toast" role="status">{notice}</div>}
+      {notice && <div className="nx-toast" role="status">{notice}</div>}
     </main>
   );
 }
