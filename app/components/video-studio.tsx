@@ -75,7 +75,7 @@ export default function VideoStudio() {
     {provider === "fal" ? <label className="video-resolution-label">الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)} disabled={busy}><option value="2K">2K</option><option value="4K">4K (حسب دعم النموذج)</option><option value="1080p">1080p</option></select></label> : <p className="video-engine-note">Runway يستخدم إعداد الدقة الافتراضي المدعوم من النموذج (حالياً 1080p)، ولا نضمن إخراج 2K أو 4K من هذا المسار.</p>}
     <button className="image-generate-btn" onClick={() => void createVideo()} disabled={busy || !prompt.trim()}>{busy ? <LoaderCircle size={17} className="spin" /> : <Play size={17} />}{busy ? "الفيديو قيد المعالجة..." : "إنشاء الفيديو"}</button>
     {notice && <p className="image-studio-notice" role="status">{notice} {notice.includes("سجّل الدخول") && <Link href="/login">تسجيل الدخول</Link>}</p>}
-    {busy && <div className="video-progress"><LoaderCircle size={16} className="spin" /> الحالة: {status === "IN_PROGRESS" ? "المحرك ينشئ الفيديو الآن" : "في انتظار دور المحرك"} — قد يستغرق عدة دقائق.</div>}
+    {busy && <div className="video-progress"><LoaderCircle size={16} className="spin" /> الحالة: {status === "IN_PROGRESS" || status === "RUNNING" ? "المحرك ينشئ الفيديو الآن" : "في انتظار دور المحرك"} — قد يستغرق عدة دقائق.</div>}
     {videoUrl && <div className="video-result"><video src={videoUrl} controls playsInline /><a href={videoUrl} target="_blank" rel="noreferrer">فتح الفيديو في نافذة جديدة</a></div>}
     <p className="image-studio-foot">اختر fal.ai عبر FAL_KEY وFAL_VIDEO_MODEL أو Runway عبر RUNWAY_API_KEY وRUNWAY_VIDEO_MODEL. المدة والدقة تعتمد على النموذج المختار وتكلفته.</p>
   </section>;
