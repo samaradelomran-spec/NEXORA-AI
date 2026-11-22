@@ -1,7 +1,7 @@
 import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
-type Provider = "openai" | "anthropic" | "google";
+type Provider = "openai" | "anthropic" | "google" | "mistral";
 
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 
@@ -115,6 +115,23 @@ export async function POST(request: Request) {
       const data = await response.json();
       if (!response.ok) return json({ error: "تعذر على Claude إكمال الطلب. تحقق من المفتاح وصلاحيات النموذج." }, 502);
       answer = (data.content || []).filter((part: any) => part.type === "text").map((part: any) => part.text).join("\n");
+    } else if (provider === "mistral") {
+      const key = process.env.MISTRAL_API_KEY;
+      if (!key) return json({ error: "محرك Mistral غير مربوط بعد. أضف MISTRAL_API_KEY في إعدادات الاستضافة." }, 503);
+      response = await fetch("https://api.mistral.ai/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: process.env.MISTRAL_MODEL || "mistral-large-latest",
+          messages: [{ role: "system", content: systemInstruction }, ...safeMessages],
+          max_tokens: 1800
+        }),
+        cache: "no-store"
+      });
+      const data = await response.json();
+      if (!response.ok) return json({ error: "تعذر على Mistral إكمال الطلب. تحقق من المفتاح وصلاحيات النموذج." }, 502);
+      const content = data.choices?.[0]?.message?.content;
+      answer = typeof content === "string" ? content : Array.isArray(content) ? content.filter((part: any) => part.type === "text").map((part: any) => part.text).join("\n") : "";
     } else {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
       if (!key) return json({ error: "محرك Gemini غير مربوط بعد. أضف GOOGLE_AI_API_KEY في إعدادات الاستضافة." }, 503);
