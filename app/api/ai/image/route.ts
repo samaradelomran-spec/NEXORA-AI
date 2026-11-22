@@ -14,6 +14,28 @@ async function authenticatedUser(request: Request) {
   return response.json() as Promise<{ id: string }>;
 }
 
+async function recordJob(request: Request, ownerId: string, serviceType: string, prompt: string, result: Record<string, unknown>) {
+  try {
+    const token = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!token || !url || !anon) return;
+    await fetch(`${url}/rest/v1/generation_jobs`, {
+      method: "POST",
+      headers: {
+        apikey: anon,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Prefer: "return=minimal"
+      },
+      body: JSON.stringify({ owner_id: ownerId, service_type: serviceType, prompt, status: "completed", result }),
+      cache: "no-store"
+    });
+  } catch {
+    // Generation should still be returned if optional job history logging is unavailable.
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const user = await authenticatedUser(request);
@@ -52,6 +74,7 @@ export async function POST(request: Request) {
     if (!response.ok) return Response.json({ error: "تعذر إنشاء الصورة. تحقق من صلاحية مفتاح OpenAI وإتاحة نموذج الصور وحجم الإخراج." }, { status: 502 });
     const image = data.data?.[0]?.b64_json;
     if (typeof image !== "string" || !image) return Response.json({ error: "لم يرجع المحرك ملف صورة صالحاً." }, { status: 502 });
+    await recordJob(request, user.id, "image", prompt, { model: process.env.OPENAI_IMAGE_MODEL || "gpt-image-2.5-flare", resolution });
     return Response.json({
       image: image,
       mimeType: "image/png",
