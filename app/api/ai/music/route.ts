@@ -32,11 +32,11 @@ export async function POST(request: Request) {
     const body = await request.json() as { prompt?: string; duration?: number; instrumental?: boolean; kind?: string };
     const prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 4100) return Response.json({ error: "اكتب وصفاً موسيقياً لا يتجاوز 4100 حرف." }, { status: 400 });
-    const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id });
+    const kind = body.kind === "sfx" ? "sfx" : "music";
+    const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: kind === "sfx" ? "sound_effect" : "music" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
     const durationOptions = body.kind === "sfx" ? [5, 10, 15, 30] : [15, 30, 60, 90];
     const duration = durationOptions.includes(Number(body.duration)) ? Number(body.duration) : (body.kind === "sfx" ? 10 : 30);
-    const kind = body.kind === "sfx" ? "sfx" : "music";
     const model = kind === "sfx" ? (process.env.RUNWAY_SFX_MODEL || "eleven_text_to_sound_v2") : (process.env.RUNWAY_MUSIC_MODEL || "eleven_music_v2_5");
     const endpoint = kind === "sfx" ? "sound_effect" : "text_to_music";
     const requestBody = kind === "sfx" ? { model, promptText: prompt, duration, loop: false, outputFormat: "mp3" } : { model, promptText: prompt, duration, instrumental: Boolean(body.instrumental) };
