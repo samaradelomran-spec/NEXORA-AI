@@ -28,7 +28,7 @@ export async function GET() {
     admin: configured("SUPABASE_SERVICE_ROLE_KEY") && configured("NEXORA_ADMIN_EMAILS"),
     providers,
     payments: {
-      stripe: configured("STRIPE_SECRET_KEY") && configured("STRIPE_WEBHOOK_SECRET")
+      stripe: configured("STRIPE_SECRET_KEY") && configured("STRIPE_WEBHOOK_SECRET") && configured("STRIPE_PRO_PRICE_ID")
     },
     checkedAt: new Date().toISOString()
   }, {
