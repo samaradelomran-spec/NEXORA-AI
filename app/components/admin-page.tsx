@@ -9,6 +9,7 @@ type AdminData = {
   counts: { users: number; jobs: number; completedJobs: number; activeSubscriptions: number };
   users: { id: string; email: string; displayName: string; createdAt: string; plan: string; subscriptionStatus: string }[];
   jobs: { id: string; owner_id: string; service_type: string; status: string; created_at: string }[];
+  limits: { plan: string; service_type: string; daily_generation_limit: number }[];
 };
 
 export default function AdminPage() {
@@ -41,6 +42,7 @@ export default function AdminPage() {
       {error && <div className="engine-notice"><ShieldCheck size={18} /><div><b>تعذر فتح لوحة الإدارة</b><p>{error} لإتاحة حساب مسؤول، أضف بريده إلى NEXORA_ADMIN_EMAILS ومفتاح SUPABASE_SERVICE_ROLE_KEY إلى متغيرات الخادم فقط.</p></div></div>}
       {data && <>
         <div className="admin-stat-grid"><div><Users size={18} /><strong>{data.counts.users}</strong><span>المستخدمون</span></div><div><CreditCard size={18} /><strong>{data.counts.activeSubscriptions}</strong><span>اشتراكات مدفوعة نشطة</span></div><div><Activity size={18} /><strong>{data.counts.jobs}</strong><span>عمليات مسجلة</span></div><div><ShieldCheck size={18} /><strong>{data.counts.completedJobs}</strong><span>عمليات مكتملة</span></div></div>
+        <section className="settings-section"><h2><ShieldCheck size={18} /> حدود الاستخدام اليومية</h2><p className="admin-note">هذه الحدود الابتدائية لكل أداة؛ يمكن تعديلها في جدول plan_limits داخل Supabase.</p><div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>الخطة</th><th>الأداة</th><th>الحد اليومي</th></tr></thead><tbody>{data.limits.map((limit) => <tr key={limit.plan + limit.service_type}><td>{limit.plan === "pro" ? "Pro" : "Free"}</td><td>{limit.service_type}</td><td>{limit.daily_generation_limit}</td></tr>)}</tbody></table></div></section>
         <section className="settings-section"><h2><Users size={18} /> المستخدمون</h2><div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>البريد</th><th>الاسم</th><th>الخطة</th><th>الحالة</th><th>تاريخ التسجيل</th></tr></thead><tbody>{data.users.map((account) => <tr key={account.id}><td>{account.email}</td><td>{account.displayName}</td><td>{account.plan}</td><td>{account.subscriptionStatus}</td><td>{new Date(account.createdAt).toLocaleDateString("ar")}</td></tr>)}</tbody></table></div></section>
         <section className="settings-section"><h2><Activity size={18} /> آخر العمليات</h2><div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>النوع</th><th>الحالة</th><th>معرّف المستخدم</th><th>التاريخ</th></tr></thead><tbody>{data.jobs.slice(0,30).map((job) => <tr key={job.id}><td>{job.service_type}</td><td>{job.status}</td><td>{job.owner_id.slice(0,8)}…</td><td>{new Date(job.created_at).toLocaleString("ar")}</td></tr>)}</tbody></table></div></section>
       </>}
