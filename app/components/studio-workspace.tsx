@@ -54,28 +54,33 @@ export default function StudioWorkspace({ id, title, desc, initialPrompt = "" }:
     setDrafts(next);
     try { localStorage.setItem("nexora-local-drafts", JSON.stringify(next)); } catch { /* Local storage may be unavailable */ }
 
-    const supabase = getSupabaseBrowserClient();
-    if (supabase) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const projectType = id === "web" ? "web" : id === "games" ? "game" : id === "images" ? "image" : ["videos", "cinema", "series"].includes(id) ? "video" : id === "audio" ? "audio" : "general";
-        const { error } = await supabase.from("projects").insert({
-          owner_id: user.id,
-          name: (format + " · " + title).slice(0, 120),
-          description: prompt.trim().slice(0, 500),
-          project_type: projectType,
-          content: { source: "studio_draft", studio: id, title: format, prompt: prompt.trim(), resolution: draft.resolution, createdAt: draft.createdAt }
-        });
-        if (!error) setSaveMessage("تم حفظ المسودة على هذا الجهاز وفي مشاريع حسابك السحابية.");
-        else setSaveMessage("حُفظت المسودة على هذا الجهاز، لكن تعذر حفظها سحابياً: " + error.message);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      if (supabase) {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (user && !authError) {
+          const projectType = id === "web" ? "web" : id === "games" ? "game" : id === "images" ? "image" : ["videos", "cinema", "series"].includes(id) ? "video" : id === "audio" ? "audio" : "general";
+          const { error } = await supabase.from("projects").insert({
+            owner_id: user.id,
+            name: (format + " · " + title).slice(0, 120),
+            description: prompt.trim().slice(0, 500),
+            project_type: projectType,
+            content: { source: "studio_draft", studio: id, title: format, prompt: prompt.trim(), resolution: draft.resolution, createdAt: draft.createdAt }
+          });
+          if (!error) setSaveMessage("تم حفظ المسودة على هذا الجهاز وفي مشاريع حسابك السحابية.");
+          else setSaveMessage("حُفظت المسودة على هذا الجهاز، لكن تعذر حفظها سحابياً: " + error.message);
+        } else {
+          setSaveMessage("حُفظت المسودة على هذا الجهاز. سجّل الدخول لحفظ نسخة سحابية.");
+        }
       } else {
-        setSaveMessage("حُفظت المسودة على هذا الجهاز. سجّل الدخول لحفظ نسخة سحابية.");
+        setSaveMessage("حُفظت المسودة على هذا الجهاز فقط. فعّل Supabase للحفظ السحابي.");
       }
-    } else {
-      setSaveMessage("حُفظت المسودة على هذا الجهاز فقط. فعّل Supabase للحفظ السحابي.");
+    } catch {
+      setSaveMessage("حُفظت المسودة على هذا الجهاز، لكن تعذر الاتصال بالتخزين السحابي حالياً.");
+    } finally {
+      setSaved(true);
+      setSaving(false);
     }
-    setSaved(true);
-    setSaving(false);
   }
 
   return (
