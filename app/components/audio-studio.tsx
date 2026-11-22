@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AudioLines, Download, LoaderCircle, Mic2 } from "lucide-react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/client";
+import MusicStudio from "./music-studio";
 
 export default function AudioStudio() {
   const [text, setText] = useState("");
@@ -45,7 +46,7 @@ export default function AudioStudio() {
     } finally { setBusy(false); }
   }
 
-  return <section className="audio-studio-panel">
+  return <><section className="audio-studio-panel">
     <div className="image-studio-head"><div><span className="section-kicker">تحويل النص إلى صوت</span><h3>استوديو الصوت والتعليق</h3><p>اكتب النص الذي تريد تحويله إلى تعليق صوتي.</p></div><span><AudioLines size={22} /></span></div>
     <div className="audio-options"><label>محرك الصوت<select value={provider} onChange={(e) => setProvider(e.target.value as "elevenlabs" | "google")} disabled={busy}><option value="elevenlabs">ElevenLabs</option><option value="google">Google Gemini TTS</option></select></label>{provider === "google" && <label>الصوت<select value={voice} onChange={(e) => setVoice(e.target.value)} disabled={busy}><option>Kore</option><option>Puck</option><option>Charon</option><option>Fenrir</option><option>Aoede</option><option>Callirrhoe</option><option>Enceladus</option><option>Orus</option><option>Zephyr</option><option>Schedar</option></select></label>}</div>
     <label className="image-prompt-label">النص الصوتي<textarea value={text} onChange={(e) => setText(e.target.value)} rows={6} placeholder="اكتب النص بالعربية أو اللغة التي تريدها..." /></label>
@@ -53,5 +54,5 @@ export default function AudioStudio() {
     {notice && <p className="image-studio-notice" role="status">{notice} {notice.includes("سجّل الدخول") && <Link href="/login">تسجيل الدخول</Link>}</p>}
     {audio && <div className="audio-result"><audio controls src={audio} /><a href={audio} download={provider === "google" ? "nexora-voiceover.wav" : "nexora-voiceover.mp3"}><Download size={16} /> تنزيل الملف الصوتي</a></div>}
     <p className="image-studio-foot">يعمل عبر ElevenLabs أو Gemini TTS عند ربط المفاتيح اللازمة. الأصوات مولّدة بالذكاء الاصطناعي، وتختلف النبرة واللغات بحسب النموذج والصوت المختار.</p>
-  </section>;
+  </section><MusicStudio /></>;
 }
