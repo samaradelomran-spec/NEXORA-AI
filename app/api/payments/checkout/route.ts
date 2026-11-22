@@ -11,6 +11,24 @@ async function getUser(request: Request) {
 export async function POST(request: Request) {
   const user = await getUser(request);
   if (!user?.email) return Response.json({ error: "سجّل الدخول قبل الاشتراك." }, { status: 401 });
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (supabaseUrl && anon) {
+    try {
+      const current = await fetch(supabaseUrl + "/rest/v1/subscriptions?owner_id=eq." + user.id + "&select=plan,status&limit=1", {
+        headers: { apikey: anon, Authorization: request.headers.get("authorization") || "" },
+        cache: "no-store"
+      });
+      if (!current.ok) return Response.json({ error: "تعذر التحقق من اشتراكك الحالي. حاول بعد قليل." }, { status: 502 });
+      const rows = await current.json();
+      if (rows?.[0]?.plan === "pro" && ["active", "trialing"].includes(rows[0].status)) {
+        return Response.json({ error: "اشتراك Pro مفعّل بالفعل. يمكنك إدارته من صفحة الاشتراكات." }, { status: 409 });
+      }
+    } catch {
+      return Response.json({ error: "تعذر التحقق من اشتراكك الحالي." }, { status: 503 });
+    }
+  }
+
   const secret = process.env.STRIPE_SECRET_KEY;
   const price = process.env.STRIPE_PRO_PRICE_ID;
   if (!secret || !price) return Response.json({ error: "بوابة الدفع غير مفعّلة بعد. يلزم إعداد حساب Stripe ومعرّف سعر Pro." }, { status: 503 });
