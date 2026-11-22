@@ -7,6 +7,7 @@ import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
 export default function VideoStudio() {
   const [prompt, setPrompt] = useState("");
+  const [resolution, setResolution] = useState("2K");
   const [busy, setBusy] = useState(false);
   const [jobId, setJobId] = useState("");
   const [status, setStatus] = useState("");
@@ -29,7 +30,7 @@ export default function VideoStudio() {
       const response = await fetch("/api/ai/video", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ prompt, resolution })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إرسال مهمة الفيديو.");
@@ -69,6 +70,7 @@ export default function VideoStudio() {
   return <section className="video-studio-panel">
     <div className="image-studio-head"><div><span className="section-kicker">طابور توليد الفيديو</span><h3>استوديو الفيديو والسينما</h3><p>صف المشهد والحركة وأسلوب التصوير الذي تريده.</p></div><span><Clapperboard size={22} /></span></div>
     <label className="image-prompt-label">وصف الفيديو<textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder="مثال: لقطة سينمائية لمدينة ليلية تحت المطر، حركة كاميرا بطيئة وإضاءة واقعية..." /></label>
+    <label className="video-resolution-label">الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)} disabled={busy}><option value="2K">2K</option><option value="4K">4K (حسب دعم النموذج)</option><option value="1080p">1080p</option></select></label>
     <button className="image-generate-btn" onClick={() => void createVideo()} disabled={busy || !prompt.trim()}>{busy ? <LoaderCircle size={17} className="spin" /> : <Play size={17} />}{busy ? "الفيديو قيد المعالجة..." : "إنشاء الفيديو"}</button>
     {notice && <p className="image-studio-notice" role="status">{notice} {notice.includes("سجّل الدخول") && <Link href="/login">تسجيل الدخول</Link>}</p>}
     {busy && <div className="video-progress"><LoaderCircle size={16} className="spin" /> الحالة: {status === "IN_PROGRESS" ? "المحرك ينشئ الفيديو الآن" : "في انتظار دور المحرك"} — قد يستغرق عدة دقائق.</div>}
