@@ -14,7 +14,7 @@
 ## تكاملات API الموجودة في الكود
 - النص والمساعد: OpenAI Responses API، Anthropic Messages API، Google Gemini Interactions API، وMistral Chat Completions API.
 - الصور: OpenAI Images API وGoogle Gemini 3.1 Flash Image وStability AI Stable Image وFLUX 2 Pro عبر fal.ai، مع أهداف 1K/2K/4K بحسب إمكانات النموذج.
-- الفيديو: fal.ai Queue API وRunway Dev Tasks API وLuma Dream Machine API وGoogle Gemini Omni Video؛ يدعم Gemini Omni الدقات الموثقة 720p و1080p و4K (ولا يوفّر خيار 2K أصلياً في هذا المسار)، كما يدعم Runway Music وSound Effects، مع تحديد نقطة النهاية والنموذج عبر متغيرات البيئة.
+- الفيديو: fal.ai Queue API وRunway Dev Tasks API وLuma Dream Machine API وGoogle Gemini Omni 1.2 Flash؛ تتوفر 4K دون اشتراط خطة NEXORA Pro عندما يدعمها المحرك وحساب المزود، ولا يوفّر هذا المسار خيار 2K أصلياً لـ Gemini. يدعم Runway Music وSound Effects.
 - الصوت: ElevenLabs Text-to-Speech وGoogle Gemini TTS وRunway Music وSound Effects.
 - الدفع: Stripe Checkout للاشتراك، Stripe Billing Portal، وWebhook موثّق لتحديث جدول الاشتراكات.
 
