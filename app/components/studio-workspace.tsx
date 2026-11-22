@@ -8,7 +8,7 @@ import VideoStudio from "./video-studio";
 import AudioStudio from "./audio-studio";
 import CreativeStudio from "./creative-studio";
 
-type Props = { id: string; title: string; desc: string };
+type Props = { id: string; title: string; desc: string; initialPrompt?: string };
 type Draft = { id: string; studio: string; title: string; prompt: string; format: string; resolution: string; createdAt: string };
 
 const formats: Record<string, string[]> = {
@@ -22,7 +22,7 @@ const formats: Record<string, string[]> = {
   assistant: ["كتابة وتخطيط", "بحث وتحليل", "برمجة", "عصف ذهني"]
 };
 
-export default function StudioWorkspace({ id, title, desc }: Props) {
+export default function StudioWorkspace({ id, title, desc, initialPrompt = "" }: Props) {
   const [format, setFormat] = useState((formats[id] || formats.assistant)[0]);
   const [resolution, setResolution] = useState("2K");
   const [prompt, setPrompt] = useState("");
@@ -56,7 +56,7 @@ export default function StudioWorkspace({ id, title, desc }: Props) {
         <div><span className="section-kicker">مساحة العمل · {title}</span><h2>{title}</h2><p>{desc}</p></div>
         <span className="workspace-detail-icon"><Sparkles size={20} /></span>
       </div>
-      {id === "assistant" ? <AIChat /> : id === "images" ? <ImageStudio /> : id === "videos" ? <VideoStudio /> : id === "audio" ? <AudioStudio /> : ["web", "games", "cinema", "series"].includes(id) ? <CreativeStudio studio={id as "web" | "games" | "cinema" | "series"} /> : <>
+      {id === "assistant" ? <AIChat initialPrompt={initialPrompt} /> : id === "images" ? <ImageStudio /> : id === "videos" ? <VideoStudio /> : id === "audio" ? <AudioStudio /> : ["web", "games", "cinema", "series"].includes(id) ? <CreativeStudio studio={id as "web" | "games" | "cinema" | "series"} /> : <>
       <div className="workspace-fields">
         <label>نوع المشروع
           <select value={format} onChange={(e) => { setFormat(e.target.value); setSaved(false); }}>
