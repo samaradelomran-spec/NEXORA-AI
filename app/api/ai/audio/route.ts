@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     if (provider === "google") {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
       if (!key) return Response.json({ error: "Gemini TTS غير مربوط. أضف GOOGLE_AI_API_KEY في إعدادات الاستضافة." }, { status: 503 });
-      model = process.env.GEMINI_TTS_MODEL || "gemini-3.1-flash-tts-preview";
+      model = process.env.GEMINI_TTS_MODEL || "gemini-3.8-flash-tts";
       const voice = body.voice || process.env.GEMINI_TTS_VOICE || "Kore";
       const response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
         method: "POST",
