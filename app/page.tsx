@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import StudioWorkspace from "./components/studio-workspace";
+import Link from "next/link";
 import {
   ArrowLeft, AudioLines, Bell, Blocks, Bot, ChevronDown, Clapperboard,
   Code2, Film, Gamepad2, Image as ImageIcon, LayoutDashboard, Menu,
@@ -66,7 +67,7 @@ export default function Home() {
         <header className="topbar">
           <button className="icon-btn mobile-menu" onClick={() => setMobileOpen(true)} aria-label="فتح القائمة"><Menu /></button>
           <div className="breadcrumb">مساحة العمل <span>/</span> <b>نظرة عامة</b></div>
-          <div className="top-actions"><button className="icon-btn" aria-label="بحث"><Search size={18} /></button><button className="icon-btn notification" aria-label="الإشعارات"><Bell size={18} /></button><div className="avatar">N</div></div>
+          <div className="top-actions"><button className="icon-btn" aria-label="بحث"><Search size={18} /></button><button className="icon-btn notification" aria-label="الإشعارات"><Bell size={18} /></button><Link className="auth-nav-link" href="/login">تسجيل الدخول</Link><div className="avatar">N</div></div>
         </header>
 
         <div className="content">
