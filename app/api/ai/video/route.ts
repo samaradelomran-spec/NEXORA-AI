@@ -45,7 +45,6 @@ export async function POST(request: Request) {
     const duration = [5, 10, 15].includes(Number(body.duration)) ? Number(body.duration) : 5;
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "video" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
-    if ((provider === "fal" || provider === "luma") && body.resolution === "4K" && usage.plan !== "pro") return Response.json({ error: "دقة 4K للفيديو متاحة لخطة Pro فقط." }, { status: 403 });
     const jobId = randomUUID();
     let requestId = "";
     let model = "";
@@ -55,7 +54,7 @@ export async function POST(request: Request) {
       const key = process.env.RUNWAY_API_KEY;
       model = runwayModel() || "";
       if (!key || !model) return Response.json({ error: "Runway يحتاج RUNWAY_API_KEY ونموذج RUNWAY_VIDEO_MODEL في إعدادات الخادم." }, { status: 503 });
-      if (body.resolution === "4K" && (usage.plan !== "pro" || model !== "seedance2_5")) return Response.json({ error: "دقة 4K عبر هذا المسار تتطلب خطة Pro ونموذج Seedance 2.5." }, { status: 403 });
+      if (body.resolution === "4K" && model !== "seedance2_5") return Response.json({ error: "دقة 4K عبر Runway تتطلب نموذج Seedance 2.5. اختر هذا النموذج أو استخدم محركاً آخر يدعم 4K." }, { status: 400 });
       resolution = body.resolution === "4K" ? "4K" : "720p";
       const runwayRatio = resolution === "4K" ? "3840:2160" : "1280:720";
       const submitted = await fetch("https://api.dev.runwayml.com/v1/text_to_video", {
@@ -91,7 +90,6 @@ export async function POST(request: Request) {
       if (!key) return Response.json({ error: "Gemini Omni Video يحتاج GOOGLE_AI_API_KEY في إعدادات الخادم." }, { status: 503 });
       const googleResolution = body.resolution === "4K" ? "4k" : body.resolution === "1080p" ? "1080p" : body.resolution === "720p" ? "720p" : "";
       if (!googleResolution) return Response.json({ error: "Gemini Omni لا يوفّر 2K أصلياً. اختر 720p أو 1080p أو 4K." }, { status: 400 });
-      if (googleResolution === "4k" && usage.plan !== "pro") return Response.json({ error: "دقة 4K عبر Gemini Omni تتطلب خطة NEXORA Pro وإتاحة هذا الخيار في حساب Google AI." }, { status: 403 });
       resolution = googleResolution === "4k" ? "4K" : googleResolution;
       const submitted = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
         method: "POST",
