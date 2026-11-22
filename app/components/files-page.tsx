@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Download, File, FileUp, LoaderCircle, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, File as FileIcon, FileUp, LoaderCircle, Trash2 } from "lucide-react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
 type StoredFile = { name: string; signedUrl: string; createdAt?: string; size?: number; contentType?: string };
@@ -66,13 +66,13 @@ export default function FilesPage() {
   return <main className="portal-shell">
     <header className="portal-top"><Link href="/" className="portal-back"><ArrowLeft size={16} /> العودة لمساحة العمل</Link><span className="portal-brand">NEXORA <b>AI</b></span></header>
     <section className="portal-content">
-      <div className="portal-heading"><div><span className="section-kicker">ملفاتك الخاصة</span><h1>التخزين السحابي</h1><p>ارفع ملفات مشاريعك واحتفظ بها داخل مساحة حسابك.</p></div><span className="portal-heading-icon"><File size={25} /></span></div>
-      {!supabase && <div className="engine-notice"><File size={18} /><div><b>Supabase غير مُعد</b><p>يلزم إعداد الاتصال وقاعدة التخزين.</p></div></div>}
+      <div className="portal-heading"><div><span className="section-kicker">ملفاتك الخاصة</span><h1>التخزين السحابي</h1><p>ارفع ملفات مشاريعك واحتفظ بها داخل مساحة حسابك.</p></div><span className="portal-heading-icon"><FileIcon size={25} /></span></div>
+      {!supabase && <div className="engine-notice"><FileIcon size={18} /><div><b>Supabase غير مُعد</b><p>يلزم إعداد الاتصال وقاعدة التخزين.</p></div></div>}
       {supabase && !userId && !loading && <div className="engine-notice"><File size={18} /><div><b>سجّل الدخول أولاً</b><p>الملفات محفوظة بشكل خاص لكل حساب.</p><Link href="/login" className="projects-login-link">تسجيل الدخول</Link></div></div>}
       <label className="file-upload-box"><input type="file" accept="image/*,video/mp4,video/webm,audio/mpeg,audio/wav,audio/mp4,application/pdf" disabled={!userId || uploading} onChange={(e) => { void upload(e.target.files?.[0]); e.currentTarget.value = ""; }} /><span>{uploading ? <LoaderCircle size={22} className="spin" /> : <FileUp size={22} />}</span><b>{uploading ? "جارٍ رفع الملف..." : "اضغط لاختيار ملف ورفعه"}</b><small>صور، فيديو، صوت أو PDF · الحد الأقصى 100 ميغابايت</small></label>
       {message && <p className="project-message">{message}</p>}
       <div className="project-list-heading"><h2>ملفاتي</h2><span>{files.length} ملف</span></div>
-      {loading ? <p className="project-empty">جارٍ تحميل الملفات...</p> : files.length ? <div className="stored-file-list">{files.map((item) => <article className="stored-file" key={item.name}><span><File size={18} /></span><div><b>{item.name}</b><small>{item.contentType || "ملف"} · {item.size ? Math.round(item.size / 1024) + " KB" : "—"}</small></div><div className="stored-file-actions">{item.signedUrl && <a href={item.signedUrl} target="_blank" rel="noreferrer" aria-label="تنزيل الملف"><Download size={16} /></a>}<button onClick={() => void removeFile(item.name)} aria-label="حذف الملف"><Trash2 size={16} /></button></div></article>)}</div> : <div className="project-empty"><File size={28} /><b>لا توجد ملفات محفوظة</b><span>ارفع أول ملف ليظهر هنا.</span></div>}
+      {loading ? <p className="project-empty">جارٍ تحميل الملفات...</p> : files.length ? <div className="stored-file-list">{files.map((item) => <article className="stored-file" key={item.name}><span><File size={18} /></span><div><b>{item.name}</b><small>{item.contentType || "ملف"} · {item.size ? Math.round(item.size / 1024) + " KB" : "—"}</small></div><div className="stored-file-actions">{item.signedUrl && <a href={item.signedUrl} target="_blank" rel="noreferrer" aria-label="تنزيل الملف"><Download size={16} /></a>}<button onClick={() => void removeFile(item.name)} aria-label="حذف الملف"><Trash2 size={16} /></button></div></article>)}</div> : <div className="project-empty"><FileIcon size={28} /><b>لا توجد ملفات محفوظة</b><span>ارفع أول ملف ليظهر هنا.</span></div>}
     </section>
   </main>;
 }
