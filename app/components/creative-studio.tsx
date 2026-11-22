@@ -17,7 +17,7 @@ export default function CreativeStudio({ studio }: { studio: Studio }) {
   const item = config[studio];
   const Icon = item.icon;
   const [prompt, setPrompt] = useState("");
-  const [provider, setProvider] = useState<"openai" | "anthropic" | "google">("openai");
+  const [provider, setProvider] = useState<"openai" | "anthropic" | "google" | "mistral">("openai");
   const [result, setResult] = useState("");
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -67,7 +67,7 @@ export default function CreativeStudio({ studio }: { studio: Studio }) {
   return <section className="creative-studio-panel">
     <div className="image-studio-head"><div><span className="section-kicker">إنشاء بمساعدة الذكاء الاصطناعي</span><h3>{item.title}</h3><p>اكتب الفكرة، اختر المحرك، ثم أنشئ مسودة مفصلة قابلة للحفظ.</p></div><span><Icon size={22} /></span></div>
     <label className="image-prompt-label">{item.promptLabel}<textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder={item.placeholder} /></label>
-    <div className="creative-controls"><label>محرك الذكاء الاصطناعي<select value={provider} onChange={(e) => setProvider(e.target.value as typeof provider)} disabled={busy}><option value="openai">OpenAI</option><option value="anthropic">Claude</option><option value="google">Gemini</option></select></label><span>يلزم ربط مفتاح المحرك المختار</span></div>
+    <div className="creative-controls"><label>محرك الذكاء الاصطناعي<select value={provider} onChange={(e) => setProvider(e.target.value as typeof provider)} disabled={busy}><option value="openai">OpenAI</option><option value="anthropic">Claude</option><option value="google">Gemini</option><option value="mistral">Mistral</option></select></label><span>يلزم ربط مفتاح المحرك المختار</span></div>
     <button className="image-generate-btn" onClick={() => void generate()} disabled={busy || !prompt.trim()}>{busy ? <LoaderCircle size={17} className="spin" /> : <Sparkles size={17} />}{busy ? "جارٍ إنشاء المحتوى..." : "إنشاء المحتوى"}</button>
     {notice && <p className="image-studio-notice" role="status">{notice}</p>}
     {result && <div className="creative-result"><div className="creative-result-head"><b>النتيجة</b><button onClick={() => void saveProject()} disabled={saving || saved}>{saving ? <LoaderCircle size={15} className="spin" /> : <Save size={15} />}{saved ? "تم الحفظ" : "حفظ كمشروع"}</button></div><pre>{result}</pre>{saved && <Link href="/projects">عرض مشاريعي</Link>}</div>}
