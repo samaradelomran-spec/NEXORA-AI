@@ -1,3 +1,5 @@
+import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
+
 import { createHash } from "node:crypto";
 
 export const maxDuration = 120;
@@ -32,6 +34,8 @@ export async function POST(request: Request) {
     const body = await request.json() as { prompt?: string; resolution?: string; provider?: string };
     const prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 12000) return Response.json({ error: "اكتب وصفاً للصورة لا يتجاوز 12000 حرف." }, { status: 400 });
+    const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id });
+    if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
 
     const resolution = ["1080p", "2K", "4K"].includes(body.resolution || "") ? body.resolution! : "2K";
     const provider = body.provider === "google" ? "google" : "openai";
