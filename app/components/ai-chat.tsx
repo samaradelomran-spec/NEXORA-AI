@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Bot, LoaderCircle, Send, UserRound } from "lucide-react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
-type Provider = "openai" | "anthropic" | "google";
+type Provider = "openai" | "anthropic" | "google" | "mistral";
 type Message = { role: "user" | "assistant"; content: string };
 
 export default function AIChat({ initialPrompt = "" }: { initialPrompt?: string }) {
