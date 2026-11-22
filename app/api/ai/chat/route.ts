@@ -105,7 +105,7 @@ export async function POST(request: Request) {
         method: "POST",
         headers: { "x-api-key": key, "anthropic-version": "2026-10-21", "content-type": "application/json" },
         body: JSON.stringify({
-          model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5-5",
+          model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5",
           system: systemInstruction,
           messages: safeMessages.map((item) => ({ role: item.role, content: item.content })),
           max_tokens: 1800
