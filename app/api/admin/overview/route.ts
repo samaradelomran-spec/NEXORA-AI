@@ -56,7 +56,8 @@ export async function GET(request: Request) {
         activeSubscriptions: (subscriptions || []).filter((item: any) => item.status === "active" && item.plan !== "free").length
       },
       users,
-      jobs: jobs || [],\n      limits: limits || []
+      jobs: jobs || [],
+      limits: limits || []
     }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return Response.json({ error: "حدث خطأ أثناء تحميل لوحة الإدارة." }, { status: 500 });
