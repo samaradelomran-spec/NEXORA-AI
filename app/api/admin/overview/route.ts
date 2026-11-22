@@ -31,8 +31,8 @@ export async function GET(request: Request) {
     if (![usersResponse, profilesResponse, subscriptionsResponse, jobsResponse, limitsResponse].every((response) => response.ok)) {
       return Response.json({ error: "تعذر تحميل بيانات لوحة الإدارة. تحقق من صلاحيات المفتاح الإداري." }, { status: 502 });
     }
-    const [usersData, profiles, subscriptions, jobs] = await Promise.all([
-      usersResponse.json(), profilesResponse.json(), subscriptionsResponse.json(), jobsResponse.json()
+    const [usersData, profiles, subscriptions, jobs, limits] = await Promise.all([
+      usersResponse.json(), profilesResponse.json(), subscriptionsResponse.json(), jobsResponse.json(), limitsResponse.json()
     ]);
     const profileById = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
     const subByOwner = new Map((subscriptions || []).map((subscription: any) => [subscription.owner_id, subscription]));
