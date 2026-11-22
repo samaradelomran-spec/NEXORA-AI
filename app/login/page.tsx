@@ -47,7 +47,7 @@ export default function LoginPage() {
     setBusy(true);
     setMessage("");
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/login`
+      redirectTo: `${window.location.origin}/reset-password`
     });
     setMessage(error ? error.message : "إذا كان البريد مسجلاً، ستصلك رسالة لإعادة تعيين كلمة المرور.");
     setBusy(false);
