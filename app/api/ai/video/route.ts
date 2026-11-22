@@ -96,7 +96,7 @@ export async function POST(request: Request) {
       const submitted = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
         method: "POST",
         headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
-        body: JSON.stringify({ model, input: prompt, response_format: { type: "video", delivery: "uri", aspect_ratio: "16:9", resolution: googleResolution } }),
+        body: JSON.stringify({ model, input: prompt, response_format: { type: "video", aspect_ratio: "16:9", resolution: googleResolution } }),
         cache: "no-store",
         signal: AbortSignal.timeout(50000)
       });
