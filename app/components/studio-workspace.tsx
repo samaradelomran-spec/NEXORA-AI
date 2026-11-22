@@ -7,6 +7,7 @@ import ImageStudio from "./image-studio";
 import VideoStudio from "./video-studio";
 import AudioStudio from "./audio-studio";
 import CreativeStudio from "./creative-studio";
+import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
 type Props = { id: string; title: string; desc: string; initialPrompt?: string };
 type Draft = { id: string; studio: string; title: string; prompt: string; format: string; resolution: string; createdAt: string };
@@ -28,6 +29,8 @@ export default function StudioWorkspace({ id, title, desc, initialPrompt = "" }:
   const [prompt, setPrompt] = useState("");
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [saved, setSaved] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     try {
@@ -38,16 +41,41 @@ export default function StudioWorkspace({ id, title, desc, initialPrompt = "" }:
 
   useEffect(() => { setFormat((formats[id] || formats.assistant)[0]); setSaved(false); }, [id]);
 
-  function saveDraft() {
-    if (!prompt.trim()) return;
-    const next: Draft[] = [{
-      id: `${Date.now()}`, studio: title, title: format, prompt: prompt.trim(),
-      format, resolution: id === "images" || id === "videos" ? resolution : "غير مطبق",
+  async function saveDraft() {
+    if (!prompt.trim() || saving) return;
+    setSaving(true);
+    setSaveMessage("");
+    const draft: Draft = {
+      id: `${Date.now()}`, studio: title, title: format, prompt: prompt.trim(), format,
+      resolution: id === "images" || id === "videos" ? resolution : "غير مطبق",
       createdAt: new Date().toLocaleString("ar")
-    }, ...drafts].slice(0, 30);
+    };
+    const next = [draft, ...drafts].slice(0, 30);
     setDrafts(next);
-    try { localStorage.setItem("nexora-local-drafts", JSON.stringify(next)); } catch { /* Storage may be unavailable */ }
+    try { localStorage.setItem("nexora-local-drafts", JSON.stringify(next)); } catch { /* Local storage may be unavailable */ }
+
+    const supabase = getSupabaseBrowserClient();
+    if (supabase) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const projectType = id === "web" ? "web" : id === "games" ? "game" : id === "images" ? "image" : ["videos", "cinema", "series"].includes(id) ? "video" : id === "audio" ? "audio" : "general";
+        const { error } = await supabase.from("projects").insert({
+          owner_id: user.id,
+          name: (format + " · " + title).slice(0, 120),
+          description: prompt.trim().slice(0, 500),
+          project_type: projectType,
+          content: { source: "studio_draft", studio: id, title: format, prompt: prompt.trim(), resolution: draft.resolution, createdAt: draft.createdAt }
+        });
+        if (!error) setSaveMessage("تم حفظ المسودة على هذا الجهاز وفي مشاريع حسابك السحابية.");
+        else setSaveMessage("حُفظت المسودة على هذا الجهاز، لكن تعذر حفظها سحابياً: " + error.message);
+      } else {
+        setSaveMessage("حُفظت المسودة على هذا الجهاز. سجّل الدخول لحفظ نسخة سحابية.");
+      }
+    } else {
+      setSaveMessage("حُفظت المسودة على هذا الجهاز فقط. فعّل Supabase للحفظ السحابي.");
+    }
     setSaved(true);
+    setSaving(false);
   }
 
   return (
@@ -75,10 +103,10 @@ export default function StudioWorkspace({ id, title, desc, initialPrompt = "" }:
         <textarea value={prompt} onChange={(e) => { setPrompt(e.target.value); setSaved(false); }} rows={5} placeholder="اكتب وصف المشروع، الأسلوب، التفاصيل والنتيجة التي تتوقعها..." />
       </label>
       <div className="workspace-actions">
-        <button className="workspace-save" onClick={saveDraft} disabled={!prompt.trim()}><Bookmark size={16} /> حفظ كمسودة</button>
-        <span className="workspace-hint">المسودات تُحفظ محلياً على هذا الجهاز. التوليد الفعلي يحتاج ربط محرك مناسب.</span>
+        <button className="workspace-save" onClick={() => void saveDraft()} disabled={!prompt.trim() || saving}><Bookmark size={16} /> {saving ? "جارٍ الحفظ..." : "حفظ كمسودة"}</button>
+        <span className="workspace-hint">يمكن حفظ المسودات محلياً وسحابياً عند تسجيل الدخول. التوليد الفعلي يحتاج ربط محرك مناسب.</span>
       </div>
-      {saved && <div className="workspace-success"><CheckCircle2 size={16} /> تم حفظ المسودة على هذا الجهاز.</div>}
+      {saved && <div className="workspace-success"><CheckCircle2 size={16} /> {saveMessage || "تم حفظ المسودة."}</div>}
       <div className="drafts-heading"><div><FilePlus2 size={17} /><b>مسوداتك المحفوظة</b></div><span>{drafts.length} / 30</span></div>
       {drafts.length > 0 ? <div className="draft-list">{drafts.slice(0, 4).map((draft) => <article className="draft-item" key={draft.id}><div><b>{draft.title}</b><small>{draft.studio} · {draft.createdAt}</small><p>{draft.prompt}</p></div><button onClick={() => { setPrompt(draft.prompt); setFormat(draft.format); setSaved(false); }}>فتح المسودة</button></article>)}</div> : <p className="draft-empty">ما في مسودات محفوظة بعد. اكتب فكرتك واحفظها لتلاقيها هون.</p>}
       </>}
