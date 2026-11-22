@@ -5,6 +5,7 @@ import { Bookmark, CheckCircle2, FilePlus2, Sparkles } from "lucide-react";
 import AIChat from "./ai-chat";
 import ImageStudio from "./image-studio";
 import VideoStudio from "./video-studio";
+import AudioStudio from "./audio-studio";
 
 type Props = { id: string; title: string; desc: string };
 type Draft = { id: string; studio: string; title: string; prompt: string; format: string; resolution: string; createdAt: string };
@@ -54,7 +55,7 @@ export default function StudioWorkspace({ id, title, desc }: Props) {
         <div><span className="section-kicker">مساحة العمل · {title}</span><h2>{title}</h2><p>{desc}</p></div>
         <span className="workspace-detail-icon"><Sparkles size={20} /></span>
       </div>
-      {id === "assistant" ? <AIChat /> : id === "images" ? <ImageStudio /> : id === "videos" ? <VideoStudio /> : <>
+      {id === "assistant" ? <AIChat /> : id === "images" ? <ImageStudio /> : id === "videos" ? <VideoStudio /> : id === "audio" ? <AudioStudio /> : <>
       <div className="workspace-fields">
         <label>نوع المشروع
           <select value={format} onChange={(e) => { setFormat(e.target.value); setSaved(false); }}>
