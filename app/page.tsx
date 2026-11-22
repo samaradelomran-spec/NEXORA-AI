@@ -58,6 +58,7 @@ export default function Home() {
         })}
         <Link className="nav-item models-nav-link" href="/models"><Bot size={18} /> مكتبة المحركات</Link>
         <Link className="nav-item models-nav-link" href="/projects"><Blocks size={18} /> مشاريعي</Link>
+        <Link className="nav-item models-nav-link" href="/activity"><Bell size={18} /> سجل العمليات</Link>
         <Link className="nav-item models-nav-link" href="/pricing"><Sparkles size={18} /> الخطط والاشتراكات</Link>
         <Link className="nav-item models-nav-link" href="/settings"><Settings2 size={18} /> الإعدادات وحالة الربط</Link>
         <div className="sidebar-bottom">
