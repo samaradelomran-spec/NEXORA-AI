@@ -28,11 +28,11 @@ export async function GET(request: Request) {
       fetch(url + "/rest/v1/generation_jobs?select=id,owner_id,service_type,status,created_at&order=created_at.desc&limit=100", { headers, cache: "no-store" }),
       fetch(url + "/rest/v1/plan_limits?select=plan,service_type,daily_generation_limit&order=plan.asc,service_type.asc", { headers, cache: "no-store" })
     ]);
-    if (![usersResponse, profilesResponse, subscriptionsResponse, jobsResponse, limitsResponse].every((response) => response.ok)) {
+    if (![usersResponse, profilesResponse, subscriptionsResponse, jobsResponse].every((response) => response.ok)) {
       return Response.json({ error: "تعذر تحميل بيانات لوحة الإدارة. تحقق من صلاحيات المفتاح الإداري." }, { status: 502 });
     }
     const [usersData, profiles, subscriptions, jobs, limits] = await Promise.all([
-      usersResponse.json(), profilesResponse.json(), subscriptionsResponse.json(), jobsResponse.json(), limitsResponse.json()
+      usersResponse.json(), profilesResponse.json(), subscriptionsResponse.json(), jobsResponse.json(), limitsResponse.ok ? limitsResponse.json() : Promise.resolve([])
     ]);
     const profileById = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
     const subByOwner = new Map((subscriptions || []).map((subscription: any) => [subscription.owner_id, subscription]));
