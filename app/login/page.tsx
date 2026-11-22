@@ -8,6 +8,7 @@ import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -25,7 +26,7 @@ export default function LoginPage() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { error } = await supabase.auth.signUp({ email, password, options: { data: { name: name.trim() } } });
         if (error) throw error;
         setMessage("تم إرسال طلب إنشاء الحساب. افحص بريدك لتأكيده إذا كان تأكيد البريد مفعّلاً.");
       } else {
@@ -55,7 +56,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="auth-form">
           <label><span><Mail size={15} /> البريد الإلكتروني</span><input type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" /></label>
           <label><span><LockKeyhole size={15} /> كلمة المرور</span><input type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="6 أحرف على الأقل" /></label>
-          <button className="auth-submit" type="submit" disabled={busy}>{busy ? "يرجى الانتظار..." : mode === "login" ? "تسجيل الدخول" : "إنشاء الحساب"}</button>
+          {mode === "login" && <button className="auth-reset" type="button" onClick={() => void handlePasswordReset()} disabled={busy}>نسيت كلمة المرور؟</button>}\n          <button className="auth-submit" type="submit" disabled={busy}>{busy ? "يرجى الانتظار..." : mode === "login" ? "تسجيل الدخول" : "إنشاء الحساب"}</button>
         </form>
         {message && <p className="auth-message" role="status">{message}</p>}
         <p className="auth-status">{configured ? "إعداد Supabase موجود في بيئة التشغيل." : "واجهة الحسابات جاهزة، وينتظر تفعيل الاتصال بقاعدة البيانات."}</p>
