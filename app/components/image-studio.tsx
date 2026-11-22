@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 export default function ImageStudio() {
   const [prompt, setPrompt] = useState("");
   const [resolution, setResolution] = useState("2K");
-  const [provider, setProvider] = useState<"openai" | "google" | "stability">("openai");
+  const [provider, setProvider] = useState<"openai" | "google" | "stability" | "fal">("openai");
   const [image, setImage] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -48,8 +48,8 @@ export default function ImageStudio() {
 
   return <section className="image-studio-panel">
     <div className="image-studio-head"><div><span className="section-kicker">توليد صور مباشر</span><h3>استوديو الصور</h3><p>اكتب وصف الصورة وحدد الدقة المستهدفة.</p></div><span><ImageIcon size={22} /></span></div>
-    <div className="image-engine-select"><label>محرك الصور<select value={provider} onChange={(e) => setProvider(e.target.value as "openai" | "google" | "stability")} disabled={busy}><option value="google">Google Gemini Image</option><option value="openai">OpenAI Images</option><option value="stability">Stability AI</option></select></label></div>
-    {provider === "stability" && <p className="image-engine-note">Stability AI يستخدم الدقة الافتراضية للنموذج؛ لا يضمن إخراج 2K أو 4K. اختر Gemini أو OpenAI عند الحاجة إلى دقة أعلى.</p>}
+    <div className="image-engine-select"><label>محرك الصور<select value={provider} onChange={(e) => setProvider(e.target.value as "openai" | "google" | "stability" | "fal")} disabled={busy}><option value="google">Google Gemini Image</option><option value="openai">OpenAI Images</option><option value="stability">Stability AI</option><option value="fal">FLUX 2 Pro · fal.ai</option></select></label></div>
+    {provider === "stability" && <p className="image-engine-note">Stability AI يستخدم الدقة الافتراضية للنموذج؛ لا يضمن إخراج 2K أو 4K. اختر Gemini أو OpenAI عند الحاجة إلى دقة أعلى.</p>}{provider === "fal" && <p className="image-engine-note">FLUX 2 Pro يدعم أحجاماً حتى 2K تقريباً عبر هذا المسار؛ 4K غير متاح هنا. اختر Gemini أو OpenAI لـ 4K.</p>}
     <label className="image-prompt-label">وصف الصورة<textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder="مثال: مشهد سينمائي لمدينة مستقبلية عند الغروب، إضاءة واقعية وتفاصيل دقيقة..." /></label>
     <div className="image-studio-controls"><label>الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)}><option value="2K">2K — مستهدف</option><option value="4K">4K — مستهدف حسب النموذج</option><option value="1080p">وضع قياسي — 1K</option></select></label><span>اختر Gemini أو OpenAI. 2K و4K حسب دعم النموذج المختار.</span></div>
     <button className="image-generate-btn" onClick={() => void generate()} disabled={busy || !prompt.trim()}>{busy ? <LoaderCircle size={17} className="spin" /> : <Sparkles size={17} />}{busy ? "جارٍ إنشاء الصورة..." : "إنشاء الصورة"}</button>
