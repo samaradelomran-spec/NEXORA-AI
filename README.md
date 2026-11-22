@@ -15,7 +15,7 @@
 - النص والمساعد: OpenAI Responses API، Anthropic Messages API، Google Gemini Interactions API.
 - الصور: OpenAI Images API.
 - الفيديو: fal.ai Queue API، مع تحديد نقطة النهاية وحقل الدقة عبر متغيرات البيئة.
-- الصوت: ElevenLabs Text-to-Speech.
+- الصوت: ElevenLabs Text-to-Speech وGoogle Gemini TTS.
 - الدفع: Stripe Checkout للاشتراك، Stripe Billing Portal، وWebhook موثّق لتحديث جدول الاشتراكات.
 
 **مهم:** وجود الكود لا يعني أن الخدمة متصلة. كل محرك يحتاج مفتاح API صالحاً، وقد يحتاج نموذجاً أو نقطة نهاية مفعّلة في حساب المزود. لم يتم نشر الموقع بعد، ولم يتم اختبار هذه الاتصالات بمفاتيح حقيقية.
@@ -35,6 +35,7 @@
 - `GOOGLE_AI_API_KEY` و`GEMINI_MODEL`
 - `FAL_KEY` و`FAL_VIDEO_MODEL` و`FAL_VIDEO_RESOLUTION_FIELD`
 - `ELEVENLABS_API_KEY` و`ELEVENLABS_DEFAULT_VOICE_ID` و`ELEVENLABS_MODEL`
+- `GEMINI_TTS_MODEL` و`GEMINI_TTS_VOICE` (مع مفتاح Google)
 
 ### الإدارة
 - `NEXORA_ADMIN_EMAILS` — قائمة عناوين البريد المسموح لها بلوحة الإدارة، مفصولة بفواصل.
