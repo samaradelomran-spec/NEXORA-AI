@@ -88,7 +88,7 @@ export async function POST(request: Request) {
       requestId = data.id;
     } else if (provider === "google") {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
-      model = process.env.GEMINI_VIDEO_MODEL || "gemini-omni-1.1-eap";
+      model = process.env.GEMINI_VIDEO_MODEL || "gemini-omni-1.2-flash";
       if (!key) return Response.json({ error: "Gemini Omni Video يحتاج GOOGLE_AI_API_KEY في إعدادات الخادم." }, { status: 503 });
       const googleResolution = body.resolution === "4K" ? "4k" : body.resolution === "1080p" ? "1080p" : body.resolution === "720p" ? "720p" : "";
       if (!googleResolution) return Response.json({ error: "Gemini Omni لا يوفّر 2K أصلياً. اختر 720p أو 1080p أو 4K." }, { status: 400 });
@@ -202,7 +202,8 @@ export async function GET(request: Request) {
       status = interactionStatus === "completed" ? "COMPLETED" : interactionStatus === "failed" ? "FAILED" : "IN_PROGRESS";
       const outputVideo = interaction.output_video || (interaction.steps || []).flatMap((step: any) => step.content || []).find((part: any) => part.type === "video");
       videoUri = outputVideo?.uri || "";
-      if (status === "COMPLETED" && videoUri) {
+      videoData = typeof outputVideo?.data === "string" ? outputVideo.data : "";
+      if (status === "COMPLETED" && videoUri && !videoData) {
         try {
           const parsedUri = new URL(videoUri);
           const fileMatch = parsedUri.pathname.match(/\/files\/([^/:]+)/);
