@@ -38,13 +38,15 @@ export async function POST(request: Request) {
   if (!auth) return Response.json({ error: "سجّل الدخول أولاً لإنشاء الفيديو." }, { status: 401 });
 
   try {
-    const body = await request.json() as { prompt?: string; resolution?: string; provider?: string; duration?: number };
-    const prompt = body.prompt?.trim();
+    const body = await request.json() as { prompt?: string; resolution?: string; provider?: string; duration?: number; realismBoost?: boolean };
+    let prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 12000) return Response.json({ error: "اكتب وصفاً للفيديو لا يتجاوز 12000 حرف." }, { status: 400 });
     const provider = body.provider === "runway" ? "runway" : body.provider === "luma" ? "luma" : body.provider === "google" ? "google" : "fal";
     const duration = [5, 10, 15].includes(Number(body.duration)) ? Number(body.duration) : 5;
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "video" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
+    if (body.realismBoost && usage.plan !== "pro") return Response.json({ error: "تحسين الواقعية السينمائية متاح لخطة Pro." }, { status: 403 });
+    if (body.realismBoost) prompt += "\n\nCinematic realism enhancement: photorealistic materials and lighting, physically plausible motion, natural lens behavior, nuanced textures, coherent shadows and reflections, realistic depth of field, subtle filmic color grading. Preserve the scene, characters, action and composition requested by the user; avoid plastic skin, oversharpening and synthetic artifacts.";
     const jobId = randomUUID();
     let requestId = "";
     let model = "";
