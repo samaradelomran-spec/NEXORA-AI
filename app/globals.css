@@ -184,3 +184,5 @@ footer{display:flex;justify-content:space-between;color:#606983;font:9px Inter,s
 @media(max-width:560px){.music-studio-panel{padding:13px}.music-controls{align-items:stretch;flex-direction:column}.music-controls .music-check{padding:0}}
 
 .admin-note{font-size:10px;color:#8791ad;margin:0 0 12px}
+
+.image-engine-note{margin:0 0 13px;border:1px solid #d6a64a33;background:#2a21151c;border-radius:9px;padding:10px 12px;color:#d9c38d;font-size:10px;line-height:1.7}
