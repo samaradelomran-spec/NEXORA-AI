@@ -9,10 +9,10 @@ import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 type Provider = "openai" | "anthropic" | "google";
 type Message = { role: "user" | "assistant"; content: string };
 
-export default function AIChat() {
+export default function AIChat({ initialPrompt = "" }: { initialPrompt?: string }) {
   const [provider, setProvider] = useState<Provider>("openai");
   const [messages, setMessages] = useState<Message[]>([]);
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState(initialPrompt);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
 
