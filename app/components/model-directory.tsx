@@ -15,7 +15,7 @@ const engines = [
   { name: "Black Forest Labs FLUX", providerId: "fal", category: "image", tasks: "توليد الصور الفنية والواقعية", detail: "نماذج FLUX عبر واجهات المزود المدعومة", key: "FAL_KEY أو BFL_API_KEY" },
   { name: "Stability AI", providerId: "stability", category: "image", tasks: "إنشاء الصور والتحرير والتحسين", detail: "أدوات توليد وتعديل الصور حسب توفر النموذج", key: "STABILITY_API_KEY" },
   { name: "Runway", providerId: "runway", category: "video", tasks: "إنشاء الفيديو والتحرير", detail: "إنتاج فيديو عبر واجهات Runway المتاحة", key: "RUNWAY_API_KEY" },
-  { name: "Google Veo", providerId: "google", category: "video", tasks: "إنشاء فيديو من النص أو الصورة", detail: "دعم الدقة والمدة يتغير بحسب النموذج والخطة", key: "GOOGLE_AI_API_KEY" },
+  { name: "Google Gemini Omni Video", providerId: "google", category: "video", tasks: "توليد فيديو قصير من النص", detail: "إنشاء مقاطع قصيرة عبر Gemini Omni Flash", key: "GOOGLE_AI_API_KEY" },
   { name: "Kling AI", providerId: "kling", category: "video", tasks: "تحريك الصور وإنشاء المقاطع", detail: "يتطلب وصول API من مزود يدعم حسابك", key: "KLING_API_KEY" },
   { name: "Luma", providerId: "luma", category: "video", tasks: "مشاهد ومقاطع فيديو مولدة", detail: "إنشاء فيديو وفق إمكانات النموذج المتاحة", key: "LUMA_API_KEY" },
   { name: "ElevenLabs", providerId: "elevenlabs", category: "audio", tasks: "الأصوات والتعليق الصوتي", detail: "تحويل النص إلى كلام وأدوات صوتية", key: "ELEVENLABS_API_KEY" },
