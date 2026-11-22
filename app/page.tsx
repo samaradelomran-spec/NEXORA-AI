@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import StudioWorkspace from "./components/studio-workspace";
 import {
   ArrowLeft, AudioLines, Bell, Blocks, Bot, ChevronDown, Clapperboard,
   Code2, Film, Gamepad2, Image as ImageIcon, LayoutDashboard, Menu,
@@ -31,8 +32,9 @@ export default function Home() {
     (studio.title.includes(query) || studio.desc.includes(query))
   ), [active, query]);
 
-  const startStudio = (title: string) => {
-    setNotice(`تم اختيار ${title}. ربط محركات التوليد سيُفعّل بعد إعداد مفاتيح الخدمات.`);
+  const startStudio = (title: string, id: string) => {
+    setActive(id);
+    setNotice(`تم فتح ${title}. يمكنك إعداد فكرتك وحفظها كمسودة.`);
     window.setTimeout(() => setNotice(""), 5000);
     document.getElementById("workspace")?.scrollIntoView({ behavior: "smooth" });
   };
@@ -86,10 +88,10 @@ export default function Home() {
             <div className="suggestions">{suggestions.map((item) => <button key={item} onClick={() => setPrompt(item)}>{item}</button>)}</div>
           </section>
 
-          <section className="studios-section" id="studios">
+          {active !== "all" && (() => { const selected = studios.find((item) => item.id === active); return selected ? <StudioWorkspace id={selected.id} title={selected.title} desc={selected.desc} /> : null; })()}\n\n          <section className="studios-section" id="studios">
             <div className="section-heading"><div><span className="section-kicker">مساحة أدواتك</span><h2>استوديوهات NEXORA</h2><p>اختر الاستوديو المناسب وحوّل فكرتك إلى مشروع.</p></div><div className="studio-search"><Search size={17} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن استوديو..." /></div></div>
             <div className="filter-row"><button className={active === "all" ? "filter active-filter" : "filter"} onClick={() => setActive("all")}>الكل <span>08</span></button>{studios.map((s) => <button key={s.id} className={active === s.id ? "filter active-filter" : "filter"} onClick={() => setActive(s.id)}>{s.title.replace("استوديو ", "").replace(" والمشاريع", "")}</button>)}</div>
-            <div className="studio-grid">{filtered.map((studio) => { const Icon = studio.icon; return <article className="studio-card" key={studio.id}><div className={`studio-icon ${studio.color}`}><Icon size={23} /></div><span className="studio-tag">{studio.tag}</span><h3>{studio.title}</h3><p>{studio.desc}</p><button className="card-action" onClick={() => startStudio(studio.title)}>افتح الاستوديو <ArrowLeft size={16} /></button></article>; })}</div>
+            <div className="studio-grid">{filtered.map((studio) => { const Icon = studio.icon; return <article className="studio-card" key={studio.id}><div className={`studio-icon ${studio.color}`}><Icon size={23} /></div><span className="studio-tag">{studio.tag}</span><h3>{studio.title}</h3><p>{studio.desc}</p><button className="card-action" onClick={() => startStudio(studio.title, studio.id)}>افتح الاستوديو <ArrowLeft size={16} /></button></article>; })}</div>
             {filtered.length === 0 && <div className="empty-state">ما لقينا استوديو بهذا الاسم. جرّب كلمة ثانية.</div>}
           </section>
 
