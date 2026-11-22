@@ -55,10 +55,13 @@ export async function POST(request: Request) {
       const key = process.env.RUNWAY_API_KEY;
       model = runwayModel() || "";
       if (!key || !model) return Response.json({ error: "Runway يحتاج RUNWAY_API_KEY ونموذج RUNWAY_VIDEO_MODEL في إعدادات الخادم." }, { status: 503 });
+      if (body.resolution === "4K" && (usage.plan !== "pro" || model !== "seedance2_5")) return Response.json({ error: "دقة 4K عبر هذا المسار تتطلب خطة Pro ونموذج Seedance 2.5." }, { status: 403 });
+      resolution = body.resolution === "4K" ? "4K" : "720p";
+      const runwayRatio = resolution === "4K" ? "3840:2160" : "1280:720";
       const submitted = await fetch("https://api.dev.runwayml.com/v1/text_to_video", {
         method: "POST",
         headers: { Authorization: "Bearer " + key, "Content-Type": "application/json", "X-Runway-Version": "2024-11-06" },
-        body: JSON.stringify({ model, promptText: prompt, ratio: "1920:1080", duration }),
+        body: JSON.stringify({ model, promptText: prompt, ratio: runwayRatio, duration }),
         cache: "no-store",
         signal: AbortSignal.timeout(50000)
       });
