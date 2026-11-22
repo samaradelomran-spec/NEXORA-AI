@@ -91,7 +91,7 @@ export async function POST(request: Request) {
       const submitted = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
         method: "POST",
         headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
-        body: JSON.stringify({ model, input: prompt, response_format: { type: "video", delivery: "uri", aspect_ratio: "16:9", resolution: "720p", duration: "6s" } }),
+        body: JSON.stringify({ model, input: prompt, response_format: { type: "video", aspect_ratio: "16:9", resolution: "720p", duration: "6s" } }),
         cache: "no-store",
         signal: AbortSignal.timeout(50000)
       });
@@ -158,6 +158,7 @@ export async function GET(request: Request) {
     let videoUrl = "";
     let providerError = "";
     let videoUri = "";
+    let videoData = "";
     if (provider === "runway") {
       const key = process.env.RUNWAY_API_KEY;
       if (!key || model !== runwayModel()) return Response.json({ error: "إعداد Runway تغيّر أو غير مكتمل." }, { status: 503 });
@@ -196,7 +197,7 @@ export async function GET(request: Request) {
       status = interactionStatus === "completed" ? "COMPLETED" : interactionStatus === "failed" ? "FAILED" : "IN_PROGRESS";
       const outputVideo = interaction.output_video || (interaction.steps || []).flatMap((step: any) => step.content || []).find((part: any) => part.type === "video");
       videoUri = outputVideo?.uri || "";
-      if (status === "COMPLETED" && videoUri) videoUrl = "/api/ai/video/file?jobId=" + encodeURIComponent(jobId);
+      if (status === "COMPLETED" && videoData) videoUrl = "";
       if (status === "FAILED") providerError = interaction.error?.message || "فشل إنشاء الفيديو لدى Gemini Omni.";
     } else {
       const key = process.env.FAL_KEY;
@@ -219,14 +220,14 @@ export async function GET(request: Request) {
 
     const finished = status === "SUCCEEDED" || status === "COMPLETED" || status === "FAILED" || status === "CANCELED" || status === "CANCELLED";
     if (!finished) return Response.json({ status, queuePosition: null });
-    const nextStatus = videoUrl ? "completed" : "failed";
-    const nextResult = { ...job.result, ...(videoUri ? { video_uri: videoUri } : {}), video_url: videoUrl || null, provider_error: videoUrl ? null : providerError || "لم يرجع المزود رابط فيديو صالحاً." };
+    const nextStatus = videoUrl || videoData ? "completed" : "failed";
+    const nextResult = { ...job.result, ...(videoUri ? { video_uri: videoUri } : {}), video_url: videoUrl || null, provider_error: videoUrl || videoData ? null : providerError || "لم يرجع المزود ملف فيديو صالحاً." };
     await restJob(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, {
       method: "PATCH", headers: { Prefer: "return=minimal" },
       body: JSON.stringify({ status: nextStatus, result: nextResult, updated_at: new Date().toISOString() })
     });
-    if (!videoUrl) return Response.json({ status: "FAILED", error: nextResult.provider_error });
-    return Response.json({ status: "COMPLETED", videoUrl, provider });
+    if (!videoUrl && !videoData) return Response.json({ status: "FAILED", error: nextResult.provider_error });
+    return Response.json({ status: "COMPLETED", videoUrl: videoUrl || null, videoData: videoData || null, provider });
   } catch {
     return Response.json({ error: "حدث خطأ أثناء استرجاع نتيجة الفيديو." }, { status: 500 });
   }
