@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 export default function ImageStudio() {
   const [prompt, setPrompt] = useState("");
   const [resolution, setResolution] = useState("2K");
-  const [provider, setProvider] = useState<"openai" | "google">("google");
+  const [provider, setProvider] = useState<"openai" | "google">("openai");
   const [image, setImage] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
