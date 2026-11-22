@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 import Link from "next/link";
 import { ArrowRight, LockKeyhole, Mail, Sparkles } from "lucide-react";
 import { getSupabaseBrowserClient } from "../../lib/supabase/client";
