@@ -1,2 +1,19 @@
-# NEXORA-AI
-NEXORA AI is an all-in-one AI SaaS platform for creating websites, apps, games, images, videos, films, series, and audio. Powered by advanced AI models, it offers a premium experience with user accounts, cloud projects, smart tools, and flexible subscriptions in one unified workspace.
+# NEXORA AI
+
+منصة عربية موحدة للإبداع والإنتاج باستخدام الذكاء الاصطناعي.
+
+## التقنيات
+- Next.js 15 و React 19 و TypeScript
+- واجهة عربية RTL متجاوبة
+- ثمانية استوديوهات: المواقع والتطبيقات، الألعاب، الصور، الفيديو، السينما، المسلسلات، الصوت، والمساعد الذكي.
+
+## التشغيل محلياً
+```bash
+npm install
+npm run dev
+```
+
+## الحالة الحالية
+هذه هي المرحلة الأولى: واجهة وتجربة استخدام أولية. لم يتم بعد ربط مزودي الذكاء الاصطناعي أو تفعيل تسجيل الدخول والتخزين السحابي والاشتراكات والدفع. يجب إعداد مفاتيح API ومتغيرات البيئة واختبار كل تكامل قبل عرضه كخدمة متصلة.
+
+تُعرض دقة 2K و4K كخيارات مستهدفة فقط عندما يدعمها المحرك المختار؛ وقد تتطلب بعض النتائج رفع دقة منفصلاً.
