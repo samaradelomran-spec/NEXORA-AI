@@ -9,7 +9,7 @@ type Transaction = { id: string; amount: number; transaction_type: string; descr
 type Balance = { isAdmin: boolean; unlimited: boolean; balance: number | null; transactions: Transaction[] };
 
 const packages = [
-  { name: "البداية", price: "$5", credits: "1,000", description: "للتجربة والاستخدام الخفيف" },
+  { name: "البداية", price: "$3", credits: "10", description: "للتجربة والاستخدام الخفيف" },
   { name: "المبدع", price: "$10", credits: "2,500", description: "للمشاريع المتوسطة" },
   { name: "المحترف", price: "$25", credits: "7,000", description: "للاستخدام المكثف" }
 ];
