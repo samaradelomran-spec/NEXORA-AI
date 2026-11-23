@@ -1,4 +1,5 @@
-import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
+import { checkDailyGenerationLimit } from ""../../../../lib/server/generation-jobs"";
+import { ensureCreditBalance, chargeCredits, refundCredits, studioCreditCost, CREDIT_COSTS } from "../../../../lib/server/credits";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 type Provider = "openai" | "anthropic" | "google" | "mistral" | "deepseek" | "groq" | "xai" | "cohere" | "together" | "fireworks";
@@ -15,7 +16,7 @@ async function getAuthenticatedUser(request: Request) {
     cache: "no-store"
   });
   if (!response.ok) return null;
-  const user = await response.json() as { id: string };
+  const user = await response.json() as { id: string; email?: string };
   return { ...user, token, url, anon };
 }
 
@@ -74,6 +75,9 @@ export async function POST(request: Request) {
     }
     const usage = await checkDailyGenerationLimit({ url: user.url, anon: user.anon, token: user.token, ownerId: user.id, serviceType: studio });
     if (!usage.allowed) return json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, usage.reason === "limit" ? 429 : 503);
+    const creditAmount = studioCreditCost(studio);
+    const creditCheck = await ensureCreditBalance({ url: user.url, ownerId: user.id, email: user.email, amount: creditAmount });
+    if (!creditCheck.ok) return json({ error: creditCheck.error }, creditCheck.status);
 
     const studioInstructions: Record<string, string> = {
       coding: "أنت مهندس برمجيات خبير في NEXORA AI. اكتب كوداً عملياً واضحاً، اقترح بنية ملفات، نفّذ الحل خطوة بخطوة، أضف اختبارات وأوامر تشغيل، واذكر أي افتراضات. لا تدّع تشغيل الكود أو نشره ما لم يحدث فعلياً.",
@@ -201,6 +205,8 @@ export async function POST(request: Request) {
     }
 
     if (!answer.trim()) return json({ error: "عاد المحرك برد فارغ. جرّب مرة أخرى." }, 502);
+    const charge = await chargeCredits({ url: user.url, ownerId: user.id, email: user.email, amount: creditAmount, description: "استخدام محرك " + studio, metadata: { provider, studio } });
+    if (!charge.ok) return json({ error: charge.error }, charge.status);
     await recordJob(user, studio, safeMessages[safeMessages.length - 1].content, { provider });
     return json({ answer, provider, studio });
   } catch {
