@@ -1,35 +1,41 @@
 export const dynamic = "force-dynamic";
 
-const configured = (name: string) => Boolean(process.env[name]?.trim());
+type Check = {
+  id: string;
+  label: string;
+  configured: boolean;
+  required: string[];
+  note: string;
+};
+
+const has = (...names: string[]) => names.every((name) => Boolean(process.env[name]?.trim()));
+const hasAny = (...names: string[]) => names.some((name) => Boolean(process.env[name]?.trim()));
 
 export async function GET() {
-  const providerConfigs: { id: string; name: string; keys: string[]; required?: string[] }[] = [
-    { id: "openai", name: "OpenAI", keys: ["OPENAI_API_KEY"] },
-    { id: "anthropic", name: "Anthropic Claude", keys: ["ANTHROPIC_API_KEY"] },
-    { id: "google", name: "Google Gemini / Omni Video", keys: ["GOOGLE_AI_API_KEY", "GEMINI_API_KEY"] },
-    { id: "mistral", name: "Mistral AI", keys: ["MISTRAL_API_KEY"] },
-    { id: "fal", name: "fal.ai", keys: ["FAL_KEY"] },
-    { id: "fal_video", name: "fal.ai Video", keys: ["FAL_KEY"], required: ["FAL_VIDEO_MODEL"] },
-    { id: "stability", name: "Stability AI", keys: ["STABILITY_API_KEY"] },
-    { id: "runway", name: "Runway", keys: ["RUNWAY_API_KEY"], required: ["RUNWAY_VIDEO_MODEL"] },
-    { id: "luma", name: "Luma", keys: ["LUMA_API_KEY"], required: ["LUMA_VIDEO_MODEL"] },
-    { id: "elevenlabs", name: "ElevenLabs", keys: ["ELEVENLABS_API_KEY"], required: ["ELEVENLABS_DEFAULT_VOICE_ID"] },
+  const checks: Check[] = [
+    { id: "supabase", label: "Supabase للحسابات والبيانات", configured: has("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"), required: ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY"], note: "وجود المفاتيح لا يثبت تطبيق migrations أو سياسات RLS أو Storage؛ اختبر تسجيل الدخول والرفع فعلياً." },
+    { id: "openai", label: "OpenAI للنص", configured: has("OPENAI_API_KEY", "OPENAI_MODEL"), required: ["OPENAI_API_KEY", "OPENAI_MODEL"], note: "يجب أن يكون النموذج المحدد متاحاً في حساب API." },
+    { id: "anthropic", label: "Anthropic Claude", configured: has("ANTHROPIC_API_KEY", "ANTHROPIC_MODEL"), required: ["ANTHROPIC_API_KEY", "ANTHROPIC_MODEL"], note: "يجب أن يكون النموذج المحدد متاحاً في حساب Anthropic." },
+    { id: "google", label: "Google Gemini", configured: hasAny("GOOGLE_AI_API_KEY", "GEMINI_API_KEY"), required: ["GOOGLE_AI_API_KEY أو GEMINI_API_KEY"], note: "هذا فحص وجود مفتاح فقط، وليس اختباراً لطلب توليد فعلي." },
+    { id: "mistral", label: "Mistral", configured: has("MISTRAL_API_KEY", "MISTRAL_MODEL"), required: ["MISTRAL_API_KEY", "MISTRAL_MODEL"], note: "يجب أن يكون النموذج المحدد متاحاً في حسابك." },
+    { id: "images", label: "إنشاء الصور", configured: has("OPENAI_API_KEY", "OPENAI_IMAGE_MODEL") || hasAny("GOOGLE_AI_API_KEY", "GEMINI_API_KEY") || has("FAL_KEY", "FAL_IMAGE_MODEL") || has("STABILITY_API_KEY"), required: ["واحد على الأقل من OpenAI أو Gemini أو fal أو Stability"], note: "الدقة والخصائص تختلف حسب النموذج ونقطة النهاية." },
+    { id: "video", label: "إنشاء الفيديو", configured: has("RUNWAY_API_KEY", "RUNWAY_VIDEO_MODEL") || has("FAL_KEY", "FAL_VIDEO_MODEL") || has("LUMA_API_KEY", "LUMA_VIDEO_MODEL") || (hasAny("GOOGLE_AI_API_KEY", "GEMINI_API_KEY") && has("GEMINI_VIDEO_MODEL")), required: ["واحد على الأقل من Runway أو fal أو Luma أو Gemini مع إعداد النموذج"], note: "تحقق من صلاحية نقطة النهاية والرصيد والقيود لدى المزود." },
+    { id: "audio", label: "تحويل النص إلى صوت", configured: has("ELEVENLABS_API_KEY", "ELEVENLABS_DEFAULT_VOICE_ID") || hasAny("GOOGLE_AI_API_KEY", "GEMINI_API_KEY"), required: ["ElevenLabs مع Voice ID أو مفتاح Gemini"], note: "توفر الصوت واللغة والنموذج يعتمد على المزود." },
+    { id: "music", label: "الموسيقى والمؤثرات", configured: has("RUNWAY_API_KEY"), required: ["RUNWAY_API_KEY"], note: "يلزم أيضاً تفعيل نماذج الموسيقى والمؤثرات في حساب Runway." },
+    { id: "stripe", label: "اشتراكات Stripe", configured: has("STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRO_PRICE_ID"), required: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRO_PRICE_ID"], note: "لا تستقبل مدفوعات حقيقية قبل اختبار Checkout وWebhook والتأكد من أهلية بلد النشاط." },
+    { id: "credits", label: "محفظة النقاط", configured: has("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"), required: ["مفاتيح Supabase وتطبيق migration الخاصة بالنقاط"], note: "هذا الفحص لا يتحقق من تطبيق migration أو عمل RPC؛ اختبرهما قبل تفعيل البيع والخصم." }
   ];
-  const providers = providerConfigs.map((provider) => ({
-    id: provider.id,
-    name: provider.name,
-    configured: provider.keys.some(configured) && (provider.required || []).every(configured)
-  }));
 
+  const configuredCount = checks.filter((item) => item.configured).length;
   return Response.json({
-    database: configured("NEXT_PUBLIC_SUPABASE_URL") && configured("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-    admin: configured("SUPABASE_SERVICE_ROLE_KEY") && configured("NEXORA_ADMIN_EMAILS"),
-    providers,
-    payments: {
-      stripe: configured("STRIPE_SECRET_KEY") && configured("STRIPE_WEBHOOK_SECRET") && configured("STRIPE_PRO_PRICE_ID")
-    },
-    checkedAt: new Date().toISOString()
+    service: "NEXORA AI",
+    status: configuredCount === checks.length ? "configured" : "needs_setup",
+    summary: { configured: configuredCount, total: checks.length },
+    checks,
+    verification: "configuration_only",
+    checkedAt: new Date().toISOString(),
+    security: "لا يعرض هذا المسار أي قيمة سرية ولا يرسل طلبات مدفوعة إلى مزودي الخدمات."
   }, {
-    headers: { "Cache-Control": "no-store, max-age=0" }
+    headers: { "Cache-Control": "no-store, max-age=0", "X-Content-Type-Options": "nosniff" }
   });
 }
