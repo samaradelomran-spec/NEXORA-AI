@@ -53,7 +53,8 @@ export async function POST(request: Request) {
     if (provider === "google") {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
       if (!key) return Response.json({ error: "Gemini Image غير مربوط. أضف GOOGLE_AI_API_KEY في إعدادات الخادم." }, { status: 503 });
-      model = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image";
+      model = process.env.GEMINI_IMAGE_MODEL || "";
+      if (!model.trim()) return Response.json({ error: "أضف GEMINI_IMAGE_MODEL من النماذج المتاحة في حسابك." }, { status: 503 });
       const imageSize = resolution === "1080p" ? "1K" : resolution;
       const response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
         method: "POST",
@@ -73,7 +74,7 @@ export async function POST(request: Request) {
       mimeType = outputImage.mime_type || "image/png";
     } else if (provider === "fal") {
       const key = process.env.FAL_KEY;
-      const endpoint = process.env.FAL_IMAGE_MODEL || "fal-ai/flux-2-pro";
+      const endpoint = process.env.FAL_IMAGE_MODEL || "";
       if (!key || !/^[a-zA-Z0-9._/-]+$/.test(endpoint) || endpoint.includes("..")) return Response.json({ error: "FLUX عبر fal يحتاج FAL_KEY ونقطة نهاية FAL_IMAGE_MODEL صالحة." }, { status: 503 });
       model = endpoint;
       const sizes: Record<string, { width: number; height: number }> = {
@@ -127,7 +128,8 @@ export async function POST(request: Request) {
     } else {
       const key = process.env.OPENAI_API_KEY;
       if (!key) return Response.json({ error: "OpenAI Images غير مربوط. أضف OPENAI_API_KEY في إعدادات الخادم." }, { status: 503 });
-      model = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2.5-flare";
+      model = process.env.OPENAI_IMAGE_MODEL || "";
+      if (!model.trim()) return Response.json({ error: "أضف OPENAI_IMAGE_MODEL من النماذج المتاحة في حسابك." }, { status: 503 });
       const sizes: Record<string, string> = { "1080p": "1536x1024", "2K": "2560x1440", "4K": "3840x2160" };
       const safetyIdentifier = createHash("sha256").update(auth.user.id).digest("hex");
       const response = await fetch("https://api.openai.com/v1/images/generations", {
