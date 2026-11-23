@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     const body = await request.json() as { provider?: Provider; messages?: ChatMessage[]; studio?: string };
     const provider = body.provider;
     const messages = body.messages;
-    const studio = ["web", "games", "cinema", "series"].includes(body.studio || "") ? body.studio! : "assistant";
+    const studio = ["coding", "software", "web", "games", "cinema", "series"].includes(body.studio || "") ? body.studio! : "assistant";
     if (!["openai", "anthropic", "google", "mistral", "deepseek", "groq", "xai", "cohere", "together", "fireworks"].includes(String(provider))) {
       return json({ error: "اختر محركاً مدعوماً." }, 400);
     }
@@ -76,8 +76,10 @@ export async function POST(request: Request) {
     if (!usage.allowed) return json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, usage.reason === "limit" ? 429 : 503);
 
     const studioInstructions: Record<string, string> = {
+      coding: "أنت مهندس برمجيات خبير في NEXORA AI. اكتب كوداً عملياً واضحاً، اقترح بنية ملفات، نفّذ الحل خطوة بخطوة، أضف اختبارات وأوامر تشغيل، واذكر أي افتراضات. لا تدّع تشغيل الكود أو نشره ما لم يحدث فعلياً.",
+      software: "أنت مهندس إنشاء أنظمة وبرامج في NEXORA AI. صمّم المنتج كبرنامج متكامل: المتطلبات، المعمارية، الواجهات، قاعدة البيانات، واجهات API، الأمان، التثبيت والتوزيع. افصل تصميم النظام عن كتابة الكود، وقدّم ملفات وأوامر قابلة للتنفيذ دون ادعاء بناء ملف تنفيذي لم يتم إنشاؤه.",
       assistant: "أنت مساعد NEXORA AI. أجب بدقة ووضوح، وبلغة المستخدم، ولا تدّع تنفيذ إجراءات أو إنشاء ملفات لم تنفذها فعلياً.",
-      web: "أنت مهندس برمجيات ومطور مواقع وتطبيقات في NEXORA AI. أنشئ خطة تنفيذ واضحة ثم أمثلة كود عملية قابلة للتشغيل، مع هيكل الملفات وتعليمات التشغيل. اسأل فقط إذا كانت معلومة أساسية ناقصة. لا تدّع أنك نشرت الموقع.",
+      web: "أنت مهندس تجربة مستخدم ومطور مواقع وتطبيقات في NEXORA AI. أنشئ خطة تنفيذ واضحة ثم أمثلة كود عملية قابلة للتشغيل، مع هيكل الملفات وتعليمات التشغيل. اسأل فقط إذا كانت معلومة أساسية ناقصة. لا تدّع أنك نشرت الموقع.",
       games: "أنت مصمم ألعاب ومهندس تطوير ألعاب في NEXORA AI. أنشئ وثيقة تصميم لعبة تشمل الفكرة والميكانيكيات والمراحل والشخصيات وواجهة اللعب، وأضف نموذج كود أولي عند الحاجة. لا تدّع أنك بنيت ملف لعبة جاهزاً ما لم تفعل ذلك.",
       cinema: "أنت كاتب سيناريو ومخرج سينمائي في NEXORA AI. طوّر الفكرة إلى معالجة سينمائية ومشاهد وحوار ووصف لقطات وحركة كاميرا وصوت وإضاءة، مع الحفاظ على طلب المستخدم.",
       series: "أنت كاتب مسلسلات في NEXORA AI. ابنِ عالم المسلسل والشخصيات وأقواسها وخريطة الحلقات ثم اكتب المشاهد والحوار بالتفصيل وفق طلب المستخدم."
