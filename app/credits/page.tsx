@@ -9,9 +9,9 @@ type Transaction = { id: string; amount: number; transaction_type: string; descr
 type Balance = { isAdmin: boolean; unlimited: boolean; balance: number | null; transactions: Transaction[] };
 
 const packages = [
-  { name: "البداية", price: "$3", credits: "10", description: "للتجربة والاستخدام الخفيف" },
-  { name: "المبدع", price: "$35", credits: "2,500", description: "للمشاريع المتوسطة" },
-  { name: "المحترف", price: "$60", credits: "7,000", description: "للاستخدام المكثف" }
+  { name: "البداية", price: "$4", credits: "10", description: "للتجربة والاستخدام الخفيف" },
+  { name: "المبدع", price: "$30", credits: "2,500", description: "للمشاريع المتوسطة" },
+  { name: "المحترف", price: "$60", credits: "5,000", description: "للاستخدام المكثف" }
 ];
 
 export default function CreditsPage() {
