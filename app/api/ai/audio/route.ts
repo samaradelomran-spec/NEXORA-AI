@@ -1,4 +1,5 @@
 import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
+import { ensureCreditBalance, chargeCredits, CREDIT_COSTS } from "../../../../lib/server/credits";
 
 export const maxDuration = 90;
 
@@ -9,7 +10,7 @@ async function getUser(request: Request) {
   if (!token || !url || !anon) return null;
   const response = await fetch(url + "/auth/v1/user", { headers: { apikey: anon, Authorization: "Bearer " + token }, cache: "no-store" });
   if (!response.ok) return null;
-  return { user: await response.json() as { id: string }, token, url, anon };
+  return { user: await response.json() as { id: string; email?: string }, token, url, anon };
 }
 
 async function recordJob(url: string, token: string, anon: string, ownerId: string, prompt: string, provider: string, model: string) {
@@ -57,6 +58,9 @@ export async function POST(request: Request) {
     if (!text || text.length > 10000) return Response.json({ error: "اكتب نصاً صوتياً لا يتجاوز 10000 حرف." }, { status: 400 });
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "audio" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
+    const creditAmount = CREDIT_COSTS.audio;
+    const creditCheck = await ensureCreditBalance({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: creditAmount });
+    if (!creditCheck.ok) return Response.json({ error: creditCheck.error }, { status: creditCheck.status });
 
     let audio: Buffer;
     let mimeType: string;
@@ -65,7 +69,8 @@ export async function POST(request: Request) {
     if (provider === "google") {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
       if (!key) return Response.json({ error: "Gemini TTS غير مربوط. أضف GOOGLE_AI_API_KEY في إعدادات الاستضافة." }, { status: 503 });
-      model = process.env.GEMINI_TTS_MODEL || "gemini-3.8-flash-tts";
+      model = process.env.GEMINI_TTS_MODEL || "";
+      if (!model.trim()) return Response.json({ error: "أضف GEMINI_TTS_MODEL من النماذج المتاحة في حسابك." }, { status: 503 });
       const voice = body.voice || process.env.GEMINI_TTS_VOICE || "Kore";
       const response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
         method: "POST",
@@ -87,7 +92,8 @@ export async function POST(request: Request) {
       const key = process.env.ELEVENLABS_API_KEY;
       const voiceId = process.env.ELEVENLABS_DEFAULT_VOICE_ID;
       if (!key || !voiceId) return Response.json({ error: "ElevenLabs يحتاج مفتاح API ومعرّف صوت افتراضي في إعدادات الاستضافة." }, { status: 503 });
-      model = process.env.ELEVENLABS_MODEL || "eleven_v4";
+      model = process.env.ELEVENLABS_MODEL || "";
+      if (!model.trim()) return Response.json({ error: "أضف ELEVENLABS_MODEL من النماذج المتاحة في حسابك." }, { status: 503 });
       const response = await fetch("https://api.elevenlabs.io/v1/text-to-speech/" + encodeURIComponent(voiceId) + "?output_format=mp3_44100_128", {
         method: "POST",
         headers: { "xi-api-key": key, "Content-Type": "application/json" },
@@ -101,6 +107,8 @@ export async function POST(request: Request) {
     }
 
     if (!audio.length) return Response.json({ error: "عاد محرك الصوت بملف فارغ." }, { status: 502 });
+    const charge = await chargeCredits({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: creditAmount, description: "تحويل النص إلى صوت", metadata: { provider, model } });
+    if (!charge.ok) return Response.json({ error: charge.error }, { status: charge.status });
     await recordJob(auth.url, auth.token, auth.anon, auth.user.id, text, provider, model);
     return Response.json({ audio: audio.toString("base64"), mimeType, model, provider }, { headers: { "Cache-Control": "no-store" } });
   } catch {

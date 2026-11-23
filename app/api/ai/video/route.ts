@@ -1,4 +1,5 @@
 import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
+import { ensureCreditBalance, chargeCredits, refundCredits, CREDIT_COSTS } from "../../../../lib/server/credits";
 
 import { randomUUID } from "node:crypto";
 
@@ -11,7 +12,7 @@ async function getUser(request: Request) {
   if (!token || !url || !anon) return null;
   const response = await fetch(url + "/auth/v1/user", { headers: { apikey: anon, Authorization: "Bearer " + token }, cache: "no-store" });
   if (!response.ok) return null;
-  return { user: await response.json() as { id: string }, token, url, anon };
+  return { user: await response.json() as { id: string; email?: string }, token, url, anon };
 }
 
 function falModel() {
@@ -21,7 +22,7 @@ function falModel() {
 }
 
 function runwayModel() {
-  const model = process.env.RUNWAY_VIDEO_MODEL || "seedance2_5";
+  const model = process.env.RUNWAY_VIDEO_MODEL || "";
   return /^[a-zA-Z0-9._-]+$/.test(model) ? model : null;
 }
 
@@ -46,6 +47,9 @@ export async function POST(request: Request) {
     const duration = provider === "kling" && Number.isInteger(requestedDuration) && requestedDuration >= 3 && requestedDuration <= 30 ? requestedDuration : [5, 10, 15].includes(requestedDuration) ? requestedDuration : 5;
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "video" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
+    const creditAmount = CREDIT_COSTS.video;
+    const creditCheck = await ensureCreditBalance({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: creditAmount });
+    if (!creditCheck.ok) return Response.json({ error: creditCheck.error }, { status: creditCheck.status });
     if (body.realismBoost && usage.plan !== "pro") return Response.json({ error: "تحسين الواقعية السينمائية متاح لخطة Pro." }, { status: 403 });
     if (body.realismBoost) prompt += "\n\nCinematic realism enhancement: photorealistic materials and lighting, physically plausible motion, natural lens behavior, nuanced textures, coherent shadows and reflections, realistic depth of field, subtle filmic color grading. Preserve the scene, characters, action and composition requested by the user; avoid plastic skin, oversharpening and synthetic artifacts.";
     const jobId = randomUUID();
@@ -88,8 +92,8 @@ export async function POST(request: Request) {
       requestId = data.id;
     } else if (provider === "luma") {
       const key = process.env.LUMA_API_KEY;
-      model = process.env.LUMA_VIDEO_MODEL || "ray-2";
-      if (!key || !["ray-2", "ray-flash-2"].includes(model)) return Response.json({ error: "Luma يحتاج LUMA_API_KEY ونموذج ray-2 أو ray-flash-2." }, { status: 503 });
+      model = process.env.LUMA_VIDEO_MODEL || "";
+      if (!key || !model.trim()) return Response.json({ error: "Luma يحتاج LUMA_API_KEY ونموذج ray-2 أو ray-flash-2." }, { status: 503 });
       if (body.resolution === "2K" || body.resolution === "4K") return Response.json({ error: "محرك Luma عبر هذا التكامل يوفّر حتى 1080p فقط. اختر 1080p أو محركاً آخر يدعم 4K." }, { status: 400 });
       resolution = "1080p";
       const submitted = await fetch("https://api.lumalabs.ai/dream-machine/v1/generations/video", {
@@ -105,8 +109,8 @@ export async function POST(request: Request) {
       requestId = data.id;
     } else if (provider === "google") {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
-      model = process.env.GEMINI_VIDEO_MODEL || "gemini-omni-1.2-flash";
-      if (!key) return Response.json({ error: "Gemini Omni Video يحتاج GOOGLE_AI_API_KEY في إعدادات الخادم." }, { status: 503 });
+      model = process.env.GEMINI_VIDEO_MODEL || "";
+      if (!key || !model.trim()) return Response.json({ error: "Gemini Omni Video يحتاج GOOGLE_AI_API_KEY في إعدادات الخادم." }, { status: 503 });
       const googleResolution = body.resolution === "4K" ? "4k" : body.resolution === "1080p" ? "1080p" : body.resolution === "720p" ? "720p" : "";
       if (!googleResolution) return Response.json({ error: "Gemini Omni لا يوفّر 2K أصلياً. اختر 720p أو 1080p أو 4K." }, { status: 400 });
       resolution = googleResolution === "4k" ? "4K" : googleResolution;
@@ -152,6 +156,12 @@ export async function POST(request: Request) {
       })
     });
     if (!saved.ok) return Response.json({ error: "تم إرسال المهمة لكن تعذر تسجيلها في حسابك. راجع إعدادات قاعدة البيانات." }, { status: 500 });
+    const charge = await chargeCredits({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: creditAmount, description: "إنشاء فيديو", idempotencyKey: jobId, metadata: { provider, model, resolution, jobId } });
+    if (!charge.ok) {
+      await restJob(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status: "failed", result: { provider, model, request_id: requestId, resolution, provider_error: charge.error } }) });
+      return Response.json({ error: charge.error }, { status: charge.status });
+    }
+    await restJob(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ result: { provider, model, request_id: requestId, resolution, credit_amount: creditAmount, credit_charge_id: jobId } }) });
     return Response.json({ jobId, requestId, provider, status: "IN_QUEUE", resolution });
   } catch {
     return Response.json({ error: "حدث خطأ أثناء إرسال مهمة الفيديو." }, { status: 500 });
@@ -295,6 +305,11 @@ export async function GET(request: Request) {
     if (!finished) return Response.json({ status, queuePosition: null });
     const nextStatus = videoUrl || videoData ? "completed" : "failed";
     const nextResult = { ...job.result, ...(videoUri ? { video_uri: videoUri } : {}), video_url: videoUrl || null, provider_error: videoUrl || videoData ? null : providerError || "لم يرجع المزود ملف فيديو صالحاً." };
+    if (nextStatus === "failed" && Number(job.result?.credit_amount) > 0 && !job.result?.credit_refunded) {
+      const refund = await refundCredits({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: Number(job.result.credit_amount), description: "إعادة نقاط فيديو فشل إنشاؤه", idempotencyKey: jobId, metadata: { provider, jobId } });
+      if (!refund.ok) return Response.json({ error: refund.error }, { status: refund.status });
+      nextResult.credit_refunded = true;
+    }
     await restJob(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, {
       method: "PATCH", headers: { Prefer: "return=minimal" },
       body: JSON.stringify({ status: nextStatus, result: nextResult, updated_at: new Date().toISOString() })

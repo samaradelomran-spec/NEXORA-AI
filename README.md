@@ -3,7 +3,7 @@
 منصة عربية موحدة للإبداع والإنتاج باستخدام الذكاء الاصطناعي، بواجهة RTL متجاوبة.
 
 ## الاستوديوهات والصفحات
-- المواقع والتطبيقات، الألعاب، الصور، الفيديو والسينما، المسلسلات، الصوت، والمساعد الذكي.
+- عشرة استوديوهات تخصصية، مع 25 مدخلاً في دليل المحركات. هذه المداخل لا تعني 25 مزود API مستقلاً؛ قد تستخدم عدة مداخل المزود نفسه.
 - مكتبة محركات، المشاريع، سجل العمليات، التخزين السحابي، الخطط، الإعدادات، ولوحة الإدارة.
 
 ## التقنيات
@@ -12,10 +12,10 @@
 - واجهات API server-side للمحركات؛ مفاتيح المزودين لا تُرسل إلى المتصفح.
 
 ## تكاملات API الموجودة في الكود
-- النص والمساعد: OpenAI Responses API، Anthropic Messages API، Google Gemini Interactions API، وMistral Chat Completions API.
-- الصور: OpenAI Images API وGoogle Gemini 3.1 Flash Image وStability AI Stable Image وFLUX 2 Pro عبر fal.ai، مع أهداف 1K/2K/4K بحسب إمكانات النموذج.
-- الفيديو: fal.ai Queue API وRunway Dev Tasks API وLuma Dream Machine API وGoogle Gemini Omni 1.2 Flash؛ تتوفر 4K دون اشتراط خطة NEXORA Pro عندما يدعمها المحرك وحساب المزود. Luma عبر التكامل الحالي محدود بـ1080p، بينما Seedance 2.5 على Runway يدعم 4K. قد يفرض مزود المحرك رسوماً مستقلة.
-- الصوت: ElevenLabs Text-to-Speech وGoogle Gemini TTS وRunway Music وSound Effects.
+- النص والمساعد: OpenAI Responses API، Anthropic Messages API، Google Gemini Interactions API، Mistral، DeepSeek، Groq، xAI، Cohere، Together AI، وFireworks AI.
+- الصور: OpenAI Images API وGoogle Gemini وStability AI Stable Image وFLUX عبر fal.ai. يجب تحديد معرّف نموذج الصورة المتاح في حساب المزود.
+- الفيديو: fal.ai Queue API وRunway Dev Tasks API وLuma Dream Machine API وGoogle Gemini وKling. يتطلب كل مزود معرّف نموذج متاحاً في الحساب؛ لا نضمن دقة 2K/4K إلا عندما يدعمها النموذج ونقطة النهاية.
+- الصوت: ElevenLabs Text-to-Speech وGoogle Gemini TTS وRunway Music وSound Effects، إضافة إلى Deepgram وAssemblyAI للتفريغ الصوتي.
 - الدفع: Stripe Checkout للاشتراك، Stripe Billing Portal، وWebhook موثّق لتحديث جدول الاشتراكات.
 
 **مهم:** وجود الكود لا يعني أن الخدمة متصلة. كل محرك يحتاج مفتاح API صالحاً، وقد يحتاج نموذجاً أو نقطة نهاية مفعّلة في حساب المزود. لم يتم نشر الموقع بعد، ولم يتم اختبار هذه الاتصالات بمفاتيح حقيقية.
@@ -34,7 +34,7 @@
 - `STABILITY_API_KEY` و`STABILITY_IMAGE_ENDPOINT`
 - `ANTHROPIC_API_KEY` و`ANTHROPIC_MODEL`
 - `MISTRAL_API_KEY` و`MISTRAL_MODEL`
-- `GOOGLE_AI_API_KEY` و`GEMINI_MODEL` و`GEMINI_IMAGE_MODEL` و`GEMINI_VIDEO_MODEL`
+- `GOOGLE_AI_API_KEY` و`GEMINI_MODEL` و`GEMINI_IMAGE_MODEL` و`GEMINI_VIDEO_MODEL` و`GEMINI_TTS_MODEL`
 - `FAL_KEY` و`FAL_IMAGE_MODEL` و`FAL_VIDEO_MODEL` و`FAL_VIDEO_RESOLUTION_FIELD` و`FAL_VIDEO_DURATION_FIELD` و`FAL_VIDEO_DEFAULT_PARAMS`
 - `RUNWAY_API_KEY` و`RUNWAY_VIDEO_MODEL` و`RUNWAY_MUSIC_MODEL` و`RUNWAY_SFX_MODEL`
 - `LUMA_API_KEY` و`LUMA_VIDEO_MODEL`
@@ -59,6 +59,7 @@
 - `supabase/migrations/20261122_nexora_storage.sql` — ينشئ bucket خاصاً باسم `nexora-files` وسياسات وصول لكل مستخدم.
 - `supabase/migrations/20261122_generation_jobs_update.sql` — يسمح لصاحب المهمة بتحديث حالتها ونتيجتها.
 - `supabase/migrations/20261122_usage_limits.sql` — يضيف حدود الاستخدام اليومية الافتراضية للخطة المجانية وPro.
+- `supabase/migrations/20261122_credits_ledger.sql` — ينشئ محفظة النقاط وسجل الحركات ودوال الخصم والإعادة.
 
 لا تُشغّل ملفات SQL قبل مراجعتها والتأكد من عدم وجود سياسات بنفس الأسماء.
 
@@ -67,6 +68,10 @@
 npm install
 npm run dev
 ```
+
+## محفظة النقاط
+
+يخصم الخادم النقاط بعد نجاح التوليد، ويتحقق من الرصيد قبل استدعاء المزود. تُعاد النقاط تلقائياً عند فشل مهام الفيديو والموسيقى والتفريغ غير المتزامنة. الأسعار الحالية بالنقاط: المساعد/البرمجة/الألعاب 45، الصورة 110، الفيديو 155، الصوت/الموسيقى/المؤثرات/التفريغ 130، الموقع 660، التطبيق 570، البرمجيات 880، السينما 1,320، المسلسل 3,080، والمسلسل 4K 4,400. يتجاوز حساب الإدارة الخصم إذا كان بريده موجوداً في NEXORA_ADMIN_EMAILS. يلزم إعداد SUPABASE_SERVICE_ROLE_KEY وتطبيق ترحيل محفظة النقاط.
 
 ## الدقة والجودة
 لا تتطلب دقة 2K و4K خطة NEXORA Pro؛ تُعرض كدقة مستهدفة فقط عندما يدعمها المحرك ونقطة النهاية وحساب المزود. خطة Pro تضيف تحسينات وصفية للواقعية السينمائية والتفاصيل في الصور والفيديو. رسوم مزودي المحركات الخارجية مستقلة عن اشتراك NEXORA. دقة 4K في الصور قد تكون تجريبية لدى المزود؛ ولا نضمن دقة أصلية موحدة لكل المحركات.
@@ -103,4 +108,4 @@ docker run --env-file .env -p 3000:3000 nexora-ai
 
 بعد تشغيل التطبيق، افتح `/api/system/status` لعرض الخدمات التي لديها مفاتيح إعداد موجودة. هذا الفحص لا يكشف الأسرار ولا ينفذ طلبات مدفوعة، لكنه **ليس اختبار اتصال حياً** ولا يثبت صلاحية المفاتيح أو تفعيل النماذج أو تطبيق SQL. يجب تنفيذ اختبار توليد فعلي لكل مزود، واختبار تسجيل الدخول والتخزين وعمليات الدفع في بيئة اختبار قبل إطلاق الموقع.
 
-حالة `configured` تعني أن متغيرات البيئة المطلوبة موجودة فقط. لا تعني أن التكامل يعمل أو أن حساب المزود لديه رصيد أو صلاحية.
+حالة `configured` تعني أن متغيرات البيئة المطلوبة موجودة فقط. لا تعني أن التكامل يعمل أو أن حساب المزود لديه رصيد أو صلاحية. لا يمكن إجراء اختبار توليد حي حتى تُضاف مفاتيح API الحقيقية ومعرّفات النماذج من حسابات المالك في إعدادات الأسرار الخاصة بالاستضافة. لا تضع مفاتيح API داخل Git أو ترسلها في المحادثات.
