@@ -13,6 +13,8 @@ type Props = { id: string; title: string; desc: string; initialPrompt?: string }
 type Draft = { id: string; studio: string; title: string; prompt: string; format: string; resolution: string; createdAt: string };
 
 const formats: Record<string, string[]> = {
+  coding: ["كتابة كود", "تصحيح الأخطاء", "اختبارات برمجية", "مراجعة وتحسين"],
+  software: ["برنامج سطح مكتب", "نظام إدارة", "واجهة API", "تطبيق متكامل"],
   web: ["موقع إلكتروني", "تطبيق ويب", "صفحة هبوط", "لوحة تحكم"],
   games: ["لعبة ثنائية الأبعاد", "لعبة ثلاثية الأبعاد", "شخصية لعبة", "بيئة ومراحل"],
   images: ["صورة واقعية", "رسم فني", "تصميم منتج", "ملصق إعلاني"],
@@ -59,7 +61,7 @@ export default function StudioWorkspace({ id, title, desc, initialPrompt = "" }:
       if (supabase) {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         if (user && !authError) {
-          const projectType = id === "web" ? "web" : id === "games" ? "game" : id === "images" ? "image" : ["videos", "cinema", "series"].includes(id) ? "video" : id === "audio" ? "audio" : "general";
+          const projectType = id === "web" ? "web" : id === "coding" || id === "software" ? "software" : id === "games" ? "game" : id === "images" ? "image" : ["videos", "cinema", "series"].includes(id) ? "video" : id === "audio" ? "audio" : "general";
           const { error } = await supabase.from("projects").insert({
             owner_id: user.id,
             name: (format + " · " + title).slice(0, 120),
@@ -89,7 +91,7 @@ export default function StudioWorkspace({ id, title, desc, initialPrompt = "" }:
         <div><span className="section-kicker">مساحة العمل · {title}</span><h2>{title}</h2><p>{desc}</p></div>
         <span className="workspace-detail-icon"><Sparkles size={20} /></span>
       </div>
-      {id === "assistant" ? <AIChat initialPrompt={initialPrompt} /> : id === "images" ? <ImageStudio /> : id === "videos" ? <VideoStudio /> : id === "audio" ? <AudioStudio /> : ["web", "games", "cinema", "series"].includes(id) ? <CreativeStudio studio={id as "web" | "games" | "cinema" | "series"} /> : <>
+      {id === "assistant" ? <AIChat initialPrompt={initialPrompt} /> : id === "images" ? <ImageStudio /> : id === "videos" ? <VideoStudio /> : id === "audio" ? <AudioStudio /> : ["coding", "software", "web", "games", "cinema", "series"].includes(id) ? <CreativeStudio studio={id as "coding" | "software" | "web" | "games" | "cinema" | "series"} /> : <>
       <div className="workspace-fields">
         <label>نوع المشروع
           <select value={format} onChange={(e) => { setFormat(e.target.value); setSaved(false); }}>
