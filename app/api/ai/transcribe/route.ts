@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
+import { checkDailyGenerationLimit } from ""../../../../lib/server/generation-jobs"";
+import { ensureCreditBalance, chargeCredits, refundCredits, studioCreditCost, CREDIT_COSTS } from "../../../../lib/server/credits";
 
 export const maxDuration = 120;
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
@@ -11,7 +12,7 @@ async function getUser(request: Request) {
   if (!token || !url || !anon) return null;
   const response = await fetch(url + "/auth/v1/user", { headers: { apikey: anon, Authorization: "Bearer " + token }, cache: "no-store" });
   if (!response.ok) return null;
-  return { user: await response.json() as { id: string }, token, url, anon };
+  return { user: await response.json() as { id: string; email?: string }, token, url, anon };
 }
 
 async function jobsRest(url: string, token: string, anon: string, path: string, init: RequestInit) {
@@ -81,6 +82,12 @@ export async function POST(request: Request) {
       body: JSON.stringify({ id: jobId, owner_id: auth.user.id, service_type: "audio", prompt: "تفريغ صوت: " + file.name.slice(0, 180), status: "queued", result: { provider, request_id: task.id } })
     });
     if (!saved.ok) return json({ error: "أُرسلت مهمة التفريغ لكن تعذر حفظها في حسابك." }, 500);
+    const charge = await chargeCredits({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: creditAmount, description: "تفريغ ملف صوتي", idempotencyKey: jobId, metadata: { provider, requestId: task.id, jobId } });
+    if (!charge.ok) {
+      await jobsRest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status: "failed", result: { provider, request_id: task.id, provider_error: charge.error } }) });
+      return json({ error: charge.error }, charge.status);
+    }
+    await jobsRest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ result: { provider, request_id: task.id, credit_amount: creditAmount, credit_charge_id: jobId } }) });
     return json({ status: "IN_PROGRESS", provider, jobId });
   } catch {
     return json({ error: "حدث خطأ أثناء تفريغ الملف الصوتي." }, 500);
@@ -107,6 +114,11 @@ export async function GET(request: Request) {
     if (task.status === "queued" || task.status === "processing") return json({ status: "IN_PROGRESS" });
     const completed = task.status === "completed" && typeof task.text === "string" && task.text.length > 0;
     const nextResult = { ...job.result, transcript: completed ? task.text : null, provider_error: completed ? null : task.error || "تعذر تفريغ الملف لدى AssemblyAI." };
+    if (!completed && Number(job.result?.credit_amount) > 0 && !job.result?.credit_refunded) {
+      const refund = await refundCredits({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: Number(job.result.credit_amount), description: "إعادة نقاط تفريغ صوتي فشل", idempotencyKey: jobId, metadata: { provider: "assemblyai", jobId } });
+      if (!refund.ok) return json({ error: refund.error }, refund.status);
+      nextResult.credit_refunded = true;
+    }
     await jobsRest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, {
       method: "PATCH", headers: { Prefer: "return=minimal" },
       body: JSON.stringify({ status: completed ? "completed" : "failed", result: nextResult, updated_at: new Date().toISOString() })
