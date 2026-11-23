@@ -1,5 +1,5 @@
-import { checkDailyGenerationLimit } from ""../../../../lib/server/generation-jobs"";
-import { ensureCreditBalance, chargeCredits, refundCredits, studioCreditCost, CREDIT_COSTS } from "../../../../lib/server/credits";
+import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
+import { ensureCreditBalance, chargeCredits, refundCredits, CREDIT_COSTS } from "../../../../lib/server/credits";
 
 import { randomUUID } from "node:crypto";
 
