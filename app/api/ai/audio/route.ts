@@ -69,7 +69,8 @@ export async function POST(request: Request) {
     if (provider === "google") {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
       if (!key) return Response.json({ error: "Gemini TTS غير مربوط. أضف GOOGLE_AI_API_KEY في إعدادات الاستضافة." }, { status: 503 });
-      model = process.env.GEMINI_TTS_MODEL || "gemini-3.8-flash-tts";
+      model = process.env.GEMINI_TTS_MODEL || "";
+      if (!model.trim()) return Response.json({ error: "أضف GEMINI_TTS_MODEL من النماذج المتاحة في حسابك." }, { status: 503 });
       const voice = body.voice || process.env.GEMINI_TTS_VOICE || "Kore";
       const response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
         method: "POST",
@@ -91,7 +92,8 @@ export async function POST(request: Request) {
       const key = process.env.ELEVENLABS_API_KEY;
       const voiceId = process.env.ELEVENLABS_DEFAULT_VOICE_ID;
       if (!key || !voiceId) return Response.json({ error: "ElevenLabs يحتاج مفتاح API ومعرّف صوت افتراضي في إعدادات الاستضافة." }, { status: 503 });
-      model = process.env.ELEVENLABS_MODEL || "eleven_v4";
+      model = process.env.ELEVENLABS_MODEL || "";
+      if (!model.trim()) return Response.json({ error: "أضف ELEVENLABS_MODEL من النماذج المتاحة في حسابك." }, { status: 503 });
       const response = await fetch("https://api.elevenlabs.io/v1/text-to-speech/" + encodeURIComponent(voiceId) + "?output_format=mp3_44100_128", {
         method: "POST",
         headers: { "xi-api-key": key, "Content-Type": "application/json" },
