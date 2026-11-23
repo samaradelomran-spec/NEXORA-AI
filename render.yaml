@@ -20,9 +20,17 @@ services:
         sync: false
       - key: OPENAI_API_KEY
         sync: false
+      - key: OPENAI_IMAGE_MODEL
+        sync: false
+      - key: OPENAI_MODEL
+        sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
+      - key: ANTHROPIC_MODEL
+        sync: false
       - key: MISTRAL_API_KEY
+        sync: false
+      - key: MISTRAL_MODEL
         sync: false
       - key: DEEPSEEK_API_KEY
         sync: false
@@ -50,6 +58,14 @@ services:
         sync: false
       - key: GOOGLE_AI_API_KEY
         sync: false
+      - key: GEMINI_TTS_MODEL
+        sync: false
+      - key: GEMINI_VIDEO_MODEL
+        sync: false
+      - key: GEMINI_IMAGE_MODEL
+        sync: false
+      - key: GEMINI_MODEL
+        sync: false
       - key: STABILITY_API_KEY
         sync: false
       - key: FAL_KEY
@@ -58,7 +74,15 @@ services:
         sync: false
       - key: RUNWAY_API_KEY
         sync: false
+      - key: RUNWAY_SFX_MODEL
+        sync: false
+      - key: RUNWAY_MUSIC_MODEL
+        sync: false
+      - key: RUNWAY_VIDEO_MODEL
+        sync: false
       - key: LUMA_API_KEY
+        sync: false
+      - key: LUMA_VIDEO_MODEL
         sync: false
       - key: KLING_API_KEY
         sync: false
@@ -67,6 +91,8 @@ services:
       - key: ASSEMBLYAI_API_KEY
         sync: false
       - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_MODEL
         sync: false
       - key: ELEVENLABS_DEFAULT_VOICE_ID
         sync: false
