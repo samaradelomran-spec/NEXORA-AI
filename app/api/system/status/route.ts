@@ -36,6 +36,7 @@ export async function GET() {
     { id: "runway", configured: has("RUNWAY_API_KEY"), integrated: true },
     { id: "luma", configured: has("LUMA_API_KEY"), integrated: true },
     { id: "elevenlabs", configured: has("ELEVENLABS_API_KEY"), integrated: true },
+    { id: "kling", configured: has("KLING_API_KEY"), integrated: true },
     { id: "deepseek", configured: has("DEEPSEEK_API_KEY", "DEEPSEEK_MODEL"), integrated: true },
     { id: "groq", configured: has("GROQ_API_KEY", "GROQ_MODEL"), integrated: true },
     { id: "xai", configured: has("XAI_API_KEY", "XAI_MODEL"), integrated: true },
