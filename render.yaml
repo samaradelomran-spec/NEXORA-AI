@@ -60,6 +60,12 @@ services:
         sync: false
       - key: LUMA_API_KEY
         sync: false
+      - key: KLING_API_KEY
+        sync: false
+      - key: DEEPGRAM_API_KEY
+        sync: false
+      - key: ASSEMBLYAI_API_KEY
+        sync: false
       - key: ELEVENLABS_API_KEY
         sync: false
       - key: ELEVENLABS_DEFAULT_VOICE_ID
