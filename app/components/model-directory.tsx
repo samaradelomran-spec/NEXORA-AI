@@ -45,12 +45,15 @@ export default function ModelDirectory() {
   const [category, setCategory] = useState<Category>("all");
   const [query, setQuery] = useState("");
   const [configured, setConfigured] = useState<Record<string, boolean>>({});
+  const [integrated, setIntegrated] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     void fetch("/api/system/status", { cache: "no-store" }).then((response) => response.json()).then((data) => {
       const next: Record<string, boolean> = {};
-      for (const provider of data.providers || []) next[provider.id] = Boolean(provider.configured);
+      const connected: Record<string, boolean> = {};
+      for (const provider of data.providers || []) { next[provider.id] = Boolean(provider.configured); connected[provider.id] = Boolean(provider.integrated); }
       setConfigured(next);
+      setIntegrated(connected);
     }).catch(() => setConfigured({}));
   }, []);
   const visible = useMemo(() => engines.filter((engine) =>
@@ -65,7 +68,7 @@ export default function ModelDirectory() {
       <div className="engine-notice"><ShieldCheck size={19} /><div><b>حالة الربط بشفافية</b><p>تتحدث حالة المفتاح تلقائياً من إعدادات الخادم. وجود المفتاح لا يثبت نجاح الاتصال؛ لن نعرض محركاً على أنه يعمل قبل اختبار طلب حقيقي.</p></div></div>
       <div className="engine-stats"><div><strong>{engines.length}</strong><span>محركاً ضمن الخطة</span></div><div><strong>4</strong><span>مجالات رئيسية</span></div><div><strong>2K / 4K</strong><span>حسب دعم كل نموذج</span></div></div>
       <div className="engine-tools"><div className="engine-tabs">{categories.map((item) => { const Icon = item.icon; return <button key={item.id} onClick={() => setCategory(item.id)} className={category === item.id ? "engine-tab active" : "engine-tab"}><Icon size={15} />{item.label}</button>; })}</div><label className="engine-search"><Search size={16} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن محرك..." /></label></div>
-      <div className="engine-grid">{visible.map((engine) => <article className="engine-card" key={engine.name + engine.category}><div className="engine-card-top"><span className="engine-avatar">{engine.category === "text" ? <Bot size={20} /> : engine.category === "image" ? <ImageIcon size={20} /> : engine.category === "video" ? <Film size={20} /> : <AudioLines size={20} />}</span><span className={configured[engine.providerId] ? "engine-status engine-configured" : "engine-status"}><i />{configured[engine.providerId] ? "المفتاح موجود · يحتاج اختبار" : "غير مربوط"}</span></div><h2>{engine.name}</h2><b className="engine-task">{engine.tasks}</b><p>{engine.detail}</p><div className="engine-key">متغير الربط: <code>{engine.key}</code></div></article>)}</div>
+      <div className="engine-grid">{visible.map((engine) => <article className="engine-card" key={engine.name + engine.category}><div className="engine-card-top"><span className="engine-avatar">{engine.category === "text" ? <Bot size={20} /> : engine.category === "image" ? <ImageIcon size={20} /> : engine.category === "video" ? <Film size={20} /> : <AudioLines size={20} />}</span><span className={configured[engine.providerId] ? "engine-status engine-configured" : "engine-status"}><i />{configured[engine.providerId] && integrated[engine.providerId] ? "المفتاح موجود · يحتاج اختبار فعلي" : configured[engine.providerId] ? "المفتاح موجود · الموصل غير مفعّل" : "غير مربوط"}</span></div><h2>{engine.name}</h2><b className="engine-task">{engine.tasks}</b><p>{engine.detail}</p><div className="engine-key">متغير الربط: <code>{engine.key}</code></div></article>)}</div>
       {visible.length === 0 && <p className="engine-empty">ما لقينا محركاً مطابقاً لبحثك.</p>}
       <div className="engine-foot"><CheckCircle2 size={17} /><span>بعد إضافة مفاتيح المزودين إلى إعدادات الاستضافة، سنختبر الاتصال ونحدّث حالة كل محرك.</span></div>
     </section>
