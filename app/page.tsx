@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 
 const studios = [
+  { id: "coding", title: "استوديو البرمجة والتكويد", desc: "اكتب الكود، أصلح الأخطاء، وابنِ الحلول البرمجية.", icon: Code2, color: "violet", tag: "برمجة وتطوير" },
+  { id: "software", title: "استوديو إنشاء البرامج والأنظمة", desc: "صمّم البرامج والأنظمة وقواعد البيانات وواجهاتها.", icon: Blocks, color: "blue", tag: "هندسة الأنظمة" },
   { id: "web", title: "استوديو المواقع والتطبيقات", desc: "ابنِ مواقع وتطبيقات متكاملة من وصف بسيط.", icon: Code2, color: "violet", tag: "إنشاء وتطوير" },
   { id: "games", title: "استوديو الألعاب", desc: "صمّم عوالم وشخصيات وتجارب تفاعلية.", icon: Gamepad2, color: "blue", tag: "تجارب تفاعلية" },
   { id: "images", title: "استوديو الصور", desc: "أنشئ الصور، حرّرها، وحسّن تفاصيلها.", icon: ImageIcon, color: "pink", tag: "صورة وتصميم" },
@@ -123,7 +125,7 @@ export default function Home() {
 
           <section className="nx-studios-section" id="nx-studios">
             <div className="nx-section-head"><div><span className="nx-overline">مساحة أدواتك</span><h2>استوديوهات <i>NEXORA</i></h2><p>كل تخصص إبداعي له مساحة وأدوات مخصصة.</p></div><label className="nx-studio-search"><Search size={16} /><input id="nx-studio-search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن استوديو..." /></label></div>
-            <div className="nx-studio-grid">{filtered.map((studio, index) => { const Icon = studio.icon; return <article className="nx-studio-card" key={studio.id}><div className="nx-card-top"><span className={`nx-studio-icon ${studio.color}`}><Icon size={21} /></span><small>0{index + 1} / 08</small></div><span className="nx-studio-tag">{studio.tag}</span><h3>{studio.title}</h3><p>{studio.desc}</p><button onClick={() => startStudio(studio.title, studio.id)}>افتح الاستوديو <ArrowLeft size={15} /></button></article>; })}</div>
+            <div className="nx-studio-grid">{filtered.map((studio, index) => { const Icon = studio.icon; return <article className="nx-studio-card" key={studio.id}><div className="nx-card-top"><span className={`nx-studio-icon ${studio.color}`}><Icon size={21} /></span><small>{String(index + 1).padStart(2, "0")} / 10</small></div><span className="nx-studio-tag">{studio.tag}</span><h3>{studio.title}</h3><p>{studio.desc}</p><button onClick={() => startStudio(studio.title, studio.id)}>افتح الاستوديو <ArrowLeft size={15} /></button></article>; })}</div>
             {filtered.length === 0 && <div className="nx-empty">ما لقينا استوديو بهذا الاسم. جرّب كلمة ثانية.</div>}
           </section>
 
