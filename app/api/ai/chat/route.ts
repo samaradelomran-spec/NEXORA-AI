@@ -1,7 +1,7 @@
 import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
-type Provider = "openai" | "anthropic" | "google" | "mistral";
+type Provider = "openai" | "anthropic" | "google" | "mistral" | "deepseek" | "groq" | "xai" | "cohere" | "together" | "fireworks";
 
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     const provider = body.provider;
     const messages = body.messages;
     const studio = ["web", "games", "cinema", "series"].includes(body.studio || "") ? body.studio! : "assistant";
-    if (!["openai", "anthropic", "google", "mistral"].includes(String(provider))) {
+    if (!["openai", "anthropic", "google", "mistral", "deepseek", "groq", "xai", "cohere", "together", "fireworks"].includes(String(provider))) {
       return json({ error: "اختر محركاً مدعوماً." }, 400);
     }
     if (!Array.isArray(messages) || messages.length < 1 || messages.length > 20) {
@@ -132,6 +132,51 @@ export async function POST(request: Request) {
       if (!response.ok) return json({ error: "تعذر على Mistral إكمال الطلب. تحقق من المفتاح وصلاحيات النموذج." }, 502);
       const content = data.choices?.[0]?.message?.content;
       answer = typeof content === "string" ? content : Array.isArray(content) ? content.filter((part: any) => part.type === "text").map((part: any) => part.text).join("\n") : "";
+    } else if (provider === "deepseek" || provider === "groq" || provider === "xai" || provider === "together" || provider === "fireworks") {
+      const configs = {
+        deepseek: { key: process.env.DEEPSEEK_API_KEY, model: process.env.DEEPSEEK_MODEL, url: "https://api.deepseek.com/chat/completions", label: "DeepSeek" },
+        groq: { key: process.env.GROQ_API_KEY, model: process.env.GROQ_MODEL, url: "https://api.groq.com/openai/v1/chat/completions", label: "Groq" },
+        xai: { key: process.env.XAI_API_KEY, model: process.env.XAI_MODEL, url: "https://api.x.ai/v1/chat/completions", label: "xAI Grok" },
+        together: { key: process.env.TOGETHER_API_KEY, model: process.env.TOGETHER_MODEL, url: "https://api.together.xyz/v1/chat/completions", label: "Together AI" },
+        fireworks: { key: process.env.FIREWORKS_API_KEY, model: process.env.FIREWORKS_MODEL, url: "https://api.fireworks.ai/inference/v1/chat/completions", label: "Fireworks AI" }
+      } as const;
+      const config = configs[provider];
+      if (!config.key) return json({ error: config.label + " غير مربوط بعد. أضف مفتاح API في إعدادات الخادم." }, 503);
+      if (!config.model?.trim()) return json({ error: "أضف معرّف النموذج المتاح في حساب " + config.label + " إلى متغير " + provider.toUpperCase() + "_MODEL." }, 503);
+      response = await fetch(config.url, {
+        method: "POST",
+        headers: { Authorization: "Bearer " + config.key, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: config.model,
+          messages: [{ role: "system", content: systemInstruction }, ...safeMessages],
+          max_tokens: 1800
+        }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(80000)
+      });
+      const data = await response.json();
+      if (!response.ok) return json({ error: "تعذر على " + config.label + " إكمال الطلب. تحقق من المفتاح ومعرّف النموذج والرصيد." }, 502);
+      const content = data.choices?.[0]?.message?.content;
+      answer = typeof content === "string" ? content : Array.isArray(content) ? content.filter((part: any) => part.type === "text").map((part: any) => part.text).join("\n") : "";
+    } else if (provider === "cohere") {
+      const key = process.env.COHERE_API_KEY;
+      const model = process.env.COHERE_MODEL;
+      if (!key) return json({ error: "Cohere غير مربوط بعد. أضف COHERE_API_KEY في إعدادات الخادم." }, 503);
+      if (!model?.trim()) return json({ error: "أضف معرّف النموذج المتاح في حساب Cohere إلى COHERE_MODEL." }, 503);
+      response = await fetch("https://api.cohere.com/v2/chat", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: "system", content: systemInstruction }, ...safeMessages],
+          max_tokens: 1800
+        }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(80000)
+      });
+      const data = await response.json();
+      if (!response.ok) return json({ error: "تعذر على Cohere إكمال الطلب. تحقق من المفتاح ومعرّف النموذج والرصيد." }, 502);
+      answer = (data.message?.content || []).filter((part: any) => part.type === "text").map((part: any) => part.text).join("\n");
     } else {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
       if (!key) return json({ error: "محرك Gemini غير مربوط بعد. أضف GOOGLE_AI_API_KEY في إعدادات الاستضافة." }, 503);

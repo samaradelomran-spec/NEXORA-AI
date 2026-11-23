@@ -41,8 +41,9 @@ export async function POST(request: Request) {
     const body = await request.json() as { prompt?: string; resolution?: string; provider?: string; duration?: number; realismBoost?: boolean };
     let prompt = body.prompt?.trim();
     if (!prompt || prompt.length > 12000) return Response.json({ error: "اكتب وصفاً للفيديو لا يتجاوز 12000 حرف." }, { status: 400 });
-    const provider = body.provider === "runway" ? "runway" : body.provider === "luma" ? "luma" : body.provider === "google" ? "google" : "fal";
-    const duration = [5, 10, 15].includes(Number(body.duration)) ? Number(body.duration) : 5;
+    const provider = body.provider === "kling" ? "kling" : body.provider === "runway" ? "runway" : body.provider === "luma" ? "luma" : body.provider === "google" ? "google" : "fal";
+    const requestedDuration = Number(body.duration);
+    const duration = provider === "kling" && Number.isInteger(requestedDuration) && requestedDuration >= 3 && requestedDuration <= 30 ? requestedDuration : [5, 10, 15].includes(requestedDuration) ? requestedDuration : 5;
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "video" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
     if (body.realismBoost && usage.plan !== "pro") return Response.json({ error: "تحسين الواقعية السينمائية متاح لخطة Pro." }, { status: 403 });
@@ -52,7 +53,23 @@ export async function POST(request: Request) {
     let model = "";
     let resolution = "model-default";
 
-    if (provider === "runway") {
+    if (provider === "kling") {
+      const key = process.env.KLING_API_KEY;
+      if (!key) return Response.json({ error: "Kling AI يحتاج KLING_API_KEY في إعدادات الخادم." }, { status: 503 });
+      model = "kling-4.0";
+      const klingResolution = body.resolution === "4K" ? "4k" : body.resolution === "1080p" ? "1080p" : "720p";
+      resolution = klingResolution === "4k" ? "4K" : klingResolution;
+      const submitted = await fetch("https://api-singapore.klingai.com/text-to-video/kling-4.0", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + key, "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, settings: { duration, resolution: klingResolution, aspect_ratio: "16:9" } }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(50000)
+      });
+      const data = await submitted.json();
+      if (!submitted.ok || !data.data?.id) return Response.json({ error: "تعذر إرسال الفيديو إلى Kling. تحقق من المفتاح والرصيد وصلاحية Kling 4.0." }, { status: 502 });
+      requestId = String(data.data.id);
+    } else if (provider === "runway") {
       const key = process.env.RUNWAY_API_KEY;
       model = runwayModel() || "";
       if (!key || !model) return Response.json({ error: "Runway يحتاج RUNWAY_API_KEY ونموذج RUNWAY_VIDEO_MODEL في إعدادات الخادم." }, { status: 503 });
@@ -157,14 +174,28 @@ export async function GET(request: Request) {
     const requestId = job.result?.request_id;
     const provider = job.result?.provider;
     const model = job.result?.model;
-    if (!requestId || !["fal", "runway", "luma", "google"].includes(provider)) return Response.json({ error: "بيانات مهمة الفيديو غير مكتملة." }, { status: 409 });
+    if (!requestId || !["fal", "runway", "luma", "google", "kling"].includes(provider)) return Response.json({ error: "بيانات مهمة الفيديو غير مكتملة." }, { status: 409 });
 
     let status = "";
     let videoUrl = "";
     let providerError = "";
     let videoUri = "";
     let videoData = "";
-    if (provider === "runway") {
+    if (provider === "kling") {
+      const key = process.env.KLING_API_KEY;
+      if (!key || model !== "kling-4.0") return Response.json({ error: "إعداد Kling غير مكتمل أو تغيّر." }, { status: 503 });
+      const taskResponse = await fetch("https://api-singapore.klingai.com/tasks?task_ids=" + encodeURIComponent(requestId), {
+        headers: { Authorization: "Bearer " + key }, cache: "no-store"
+      });
+      const taskPayload = await taskResponse.json();
+      const task = taskPayload.data?.find((item: any) => String(item.id) === String(requestId)) || taskPayload.data?.[0];
+      if (!taskResponse.ok || !task) return Response.json({ error: "تعذر فحص حالة المهمة لدى Kling." }, { status: 502 });
+      const state = String(task.status || "submitted").toLowerCase();
+      status = state === "succeeded" ? "COMPLETED" : state === "failed" ? "FAILED" : "IN_PROGRESS";
+      const output = (task.outputs || []).find((item: any) => item.type === "video");
+      videoUrl = output?.url || "";
+      if (status === "FAILED") providerError = task.message || "فشل إنشاء الفيديو لدى Kling.";
+    } else if (provider === "runway") {
       const key = process.env.RUNWAY_API_KEY;
       if (!key || model !== runwayModel()) return Response.json({ error: "إعداد Runway تغيّر أو غير مكتمل." }, { status: 503 });
       const taskResponse = await fetch("https://api.dev.runwayml.com/v1/tasks/" + encodeURIComponent(requestId), {

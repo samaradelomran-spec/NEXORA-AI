@@ -36,12 +36,15 @@ export async function GET() {
     { id: "runway", configured: has("RUNWAY_API_KEY"), integrated: true },
     { id: "luma", configured: has("LUMA_API_KEY"), integrated: true },
     { id: "elevenlabs", configured: has("ELEVENLABS_API_KEY"), integrated: true },
-    { id: "deepseek", configured: has("DEEPSEEK_API_KEY"), integrated: false },
-    { id: "groq", configured: has("GROQ_API_KEY"), integrated: false },
-    { id: "xai", configured: has("XAI_API_KEY"), integrated: false },
-    { id: "cohere", configured: has("COHERE_API_KEY"), integrated: false },
-    { id: "together", configured: has("TOGETHER_API_KEY"), integrated: false },
-    { id: "fireworks", configured: has("FIREWORKS_API_KEY"), integrated: false },
+    { id: "kling", configured: has("KLING_API_KEY"), integrated: true },
+    { id: "deepgram", configured: has("DEEPGRAM_API_KEY"), integrated: true },
+    { id: "assemblyai", configured: has("ASSEMBLYAI_API_KEY"), integrated: true },
+    { id: "deepseek", configured: has("DEEPSEEK_API_KEY", "DEEPSEEK_MODEL"), integrated: true },
+    { id: "groq", configured: has("GROQ_API_KEY", "GROQ_MODEL"), integrated: true },
+    { id: "xai", configured: has("XAI_API_KEY", "XAI_MODEL"), integrated: true },
+    { id: "cohere", configured: has("COHERE_API_KEY", "COHERE_MODEL"), integrated: true },
+    { id: "together", configured: has("TOGETHER_API_KEY", "TOGETHER_MODEL"), integrated: true },
+    { id: "fireworks", configured: has("FIREWORKS_API_KEY", "FIREWORKS_MODEL"), integrated: true },
     { id: "catalog", configured: false, integrated: false }
   ];
   const configuredCount = checks.filter((item) => item.configured).length;

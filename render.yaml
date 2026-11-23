@@ -24,6 +24,30 @@ services:
         sync: false
       - key: MISTRAL_API_KEY
         sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: DEEPSEEK_MODEL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        sync: false
+      - key: XAI_API_KEY
+        sync: false
+      - key: XAI_MODEL
+        sync: false
+      - key: COHERE_API_KEY
+        sync: false
+      - key: COHERE_MODEL
+        sync: false
+      - key: TOGETHER_API_KEY
+        sync: false
+      - key: TOGETHER_MODEL
+        sync: false
+      - key: FIREWORKS_API_KEY
+        sync: false
+      - key: FIREWORKS_MODEL
+        sync: false
       - key: GOOGLE_AI_API_KEY
         sync: false
       - key: STABILITY_API_KEY
@@ -35,6 +59,12 @@ services:
       - key: RUNWAY_API_KEY
         sync: false
       - key: LUMA_API_KEY
+        sync: false
+      - key: KLING_API_KEY
+        sync: false
+      - key: DEEPGRAM_API_KEY
+        sync: false
+      - key: ASSEMBLYAI_API_KEY
         sync: false
       - key: ELEVENLABS_API_KEY
         sync: false
