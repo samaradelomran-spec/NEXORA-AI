@@ -8,7 +8,7 @@ import { getSupabaseBrowserClient } from "../../lib/supabase/client";
 
 type Provider = "openai" | "anthropic" | "google" | "mistral" | "deepseek" | "groq" | "xai" | "cohere" | "together" | "fireworks";
 type Message = { role: "user" | "assistant"; content: string };
-type Studio = "assistant" | "web" | "games" | "cinema" | "series";
+type Studio = "assistant" | "coding" | "software" | "web" | "games" | "cinema" | "series";
 
 export default function AIChat({ initialPrompt = "", studio = "assistant" }: { initialPrompt?: string; studio?: Studio }) {
   const [provider, setProvider] = useState<Provider>("openai");
