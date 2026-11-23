@@ -1,4 +1,5 @@
-import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
+import { checkDailyGenerationLimit } from ""../../../../lib/server/generation-jobs"";
+import { ensureCreditBalance, chargeCredits, refundCredits, studioCreditCost, CREDIT_COSTS } from "../../../../lib/server/credits";
 
 import { randomUUID } from "node:crypto";
 
@@ -11,7 +12,7 @@ async function getUser(request: Request) {
   if (!token || !url || !anon) return null;
   const response = await fetch(url + "/auth/v1/user", { headers: { apikey: anon, Authorization: "Bearer " + token }, cache: "no-store" });
   if (!response.ok) return null;
-  return { user: await response.json() as { id: string }, token, url, anon };
+  return { user: await response.json() as { id: string; email?: string }, token, url, anon };
 }
 
 async function jobsRest(url: string, token: string, anon: string, path: string, init: RequestInit) {
@@ -36,6 +37,9 @@ export async function POST(request: Request) {
     if (!prompt || prompt.length > promptLimit) return Response.json({ error: kind === "sfx" ? "وصف المؤثر الصوتي يجب ألا يتجاوز 2048 حرفاً." : "اكتب وصفاً موسيقياً لا يتجاوز 4100 حرف." }, { status: 400 });
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: kind === "sfx" ? "sound_effect" : "music" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
+    const creditAmount = kind === "sfx" ? CREDIT_COSTS.sound_effect : CREDIT_COSTS.music;
+    const creditCheck = await ensureCreditBalance({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: creditAmount });
+    if (!creditCheck.ok) return Response.json({ error: creditCheck.error }, { status: creditCheck.status });
     const durationOptions = body.kind === "sfx" ? [5, 10, 15, 30] : [15, 30, 60, 90];
     const duration = durationOptions.includes(Number(body.duration)) ? Number(body.duration) : (body.kind === "sfx" ? 10 : 30);
     const model = kind === "sfx" ? (process.env.RUNWAY_SFX_MODEL || "eleven_text_to_sound_v2") : (process.env.RUNWAY_MUSIC_MODEL || "eleven_music_v2_5");
@@ -57,6 +61,12 @@ export async function POST(request: Request) {
       body: JSON.stringify({ id: jobId, owner_id: auth.user.id, service_type: kind === "sfx" ? "sound_effect" : "music", prompt, status: "queued", result: { provider: "runway", model, request_id: data.id, duration, kind } })
     });
     if (!saved.ok) return Response.json({ error: "تم إرسال الموسيقى لكن تعذر تسجيل المهمة في حسابك." }, { status: 500 });
+    const charge = await chargeCredits({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: creditAmount, description: kind === "sfx" ? "إنشاء مؤثر صوتي" : "إنشاء موسيقى", idempotencyKey: jobId, metadata: { provider: "runway", model, kind, jobId } });
+    if (!charge.ok) {
+      await rest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status: "failed", result: { provider: "runway", model, request_id: data.id, provider_error: charge.error } }) });
+      return Response.json({ error: charge.error }, { status: charge.status });
+    }
+    await rest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ result: { provider: "runway", model, request_id: data.id, duration, kind, credit_amount: creditAmount, credit_charge_id: jobId } }) });
     return Response.json({ jobId, status: "PENDING" });
   } catch {
     return Response.json({ error: "حدث خطأ أثناء إرسال مهمة الموسيقى." }, { status: 500 });
