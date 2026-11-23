@@ -22,7 +22,7 @@ function falModel() {
 }
 
 function runwayModel() {
-  const model = process.env.RUNWAY_VIDEO_MODEL || "seedance2_5";
+  const model = process.env.RUNWAY_VIDEO_MODEL || "";
   return /^[a-zA-Z0-9._-]+$/.test(model) ? model : null;
 }
 
@@ -92,8 +92,8 @@ export async function POST(request: Request) {
       requestId = data.id;
     } else if (provider === "luma") {
       const key = process.env.LUMA_API_KEY;
-      model = process.env.LUMA_VIDEO_MODEL || "ray-2";
-      if (!key || !["ray-2", "ray-flash-2"].includes(model)) return Response.json({ error: "Luma يحتاج LUMA_API_KEY ونموذج ray-2 أو ray-flash-2." }, { status: 503 });
+      model = process.env.LUMA_VIDEO_MODEL || "";
+      if (!key || !model.trim()) return Response.json({ error: "Luma يحتاج LUMA_API_KEY ونموذج ray-2 أو ray-flash-2." }, { status: 503 });
       if (body.resolution === "2K" || body.resolution === "4K") return Response.json({ error: "محرك Luma عبر هذا التكامل يوفّر حتى 1080p فقط. اختر 1080p أو محركاً آخر يدعم 4K." }, { status: 400 });
       resolution = "1080p";
       const submitted = await fetch("https://api.lumalabs.ai/dream-machine/v1/generations/video", {
@@ -109,8 +109,8 @@ export async function POST(request: Request) {
       requestId = data.id;
     } else if (provider === "google") {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
-      model = process.env.GEMINI_VIDEO_MODEL || "gemini-omni-1.2-flash";
-      if (!key) return Response.json({ error: "Gemini Omni Video يحتاج GOOGLE_AI_API_KEY في إعدادات الخادم." }, { status: 503 });
+      model = process.env.GEMINI_VIDEO_MODEL || "";
+      if (!key || !model.trim()) return Response.json({ error: "Gemini Omni Video يحتاج GOOGLE_AI_API_KEY في إعدادات الخادم." }, { status: 503 });
       const googleResolution = body.resolution === "4K" ? "4k" : body.resolution === "1080p" ? "1080p" : body.resolution === "720p" ? "720p" : "";
       if (!googleResolution) return Response.json({ error: "Gemini Omni لا يوفّر 2K أصلياً. اختر 720p أو 1080p أو 4K." }, { status: 400 });
       resolution = googleResolution === "4k" ? "4K" : googleResolution;
