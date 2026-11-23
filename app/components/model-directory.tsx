@@ -24,7 +24,13 @@ const engines = [
   { name: "Google Gemini TTS", providerId: "google", category: "audio", tasks: "التعليق الصوتي متعدد اللغات", detail: "توليد صوت طبيعي مع التحكم بالنبرة والإلقاء", key: "GOOGLE_AI_API_KEY" },
   { name: "Deepgram", providerId: "catalog", category: "audio", tasks: "تحويل الكلام إلى نص", detail: "تفريغ الصوت والتعرف على الكلام", key: "DEEPGRAM_API_KEY" },
   { name: "OpenAI Audio", providerId: "openai", category: "audio", tasks: "الصوت والتفريغ والمعالجة", detail: "واجهات صوتية بحسب النماذج المتاحة", key: "OPENAI_API_KEY" },
-  { name: "AssemblyAI", providerId: "catalog", category: "audio", tasks: "التفريغ والتحليل الصوتي", detail: "واجهات للتعرف على الكلام ومعالجة الصوت", key: "ASSEMBLYAI_API_KEY" }
+  { name: "AssemblyAI", providerId: "catalog", category: "audio", tasks: "التفريغ والتحليل الصوتي", detail: "واجهات للتعرف على الكلام ومعالجة الصوت", key: "ASSEMBLYAI_API_KEY" },
+  { name: "DeepSeek", providerId: "deepseek", category: "text", tasks: "البرمجة، التفكير وحل المشكلات", detail: "نموذج لغوي متخصص؛ يحتاج إضافة موصل API واختباره قبل تفعيله", key: "DEEPSEEK_API_KEY" },
+  { name: "Groq", providerId: "groq", category: "text", tasks: "البرمجة والاستجابة السريعة", detail: "استضافة استدلال سريعة؛ يحتاج إضافة موصل API واختباره", key: "GROQ_API_KEY" },
+  { name: "xAI Grok", providerId: "xai", category: "text", tasks: "التحليل والكتابة والبرمجة", detail: "نماذج Grok عبر API؛ يحتاج إضافة موصل API واختباره", key: "XAI_API_KEY" },
+  { name: "Cohere", providerId: "cohere", category: "text", tasks: "البحث الدلالي وتحليل النصوص", detail: "نماذج اللغة والاسترجاع؛ يحتاج إضافة موصل API واختباره", key: "COHERE_API_KEY" },
+  { name: "Together AI", providerId: "together", category: "text", tasks: "نماذج مفتوحة للبرمجة والتوليد", detail: "منصة نماذج متعددة؛ يحتاج تحديد النماذج وإضافة الموصل", key: "TOGETHER_API_KEY" },
+  { name: "Fireworks AI", providerId: "fireworks", category: "text", tasks: "البرمجة والاستدلال متعدد النماذج", detail: "استضافة نماذج مفتوحة؛ يحتاج إضافة موصل API واختباره", key: "FIREWORKS_API_KEY" }
 ] as const;
 
 const categories: { id: Category; label: string; icon: typeof Bot }[] = [
@@ -55,7 +61,7 @@ export default function ModelDirectory() {
   return <main className="portal-shell">
     <header className="portal-top"><Link href="/" className="portal-back"><ArrowLeft size={16} /> العودة لمساحة العمل</Link><span className="portal-brand">NEXORA <b>AI</b></span></header>
     <section className="portal-content">
-      <div className="portal-heading"><div><span className="section-kicker">منظومة الذكاء الاصطناعي</span><h1>مكتبة المحركات</h1><p>مجموعة المحركات المخطط ربطها لتشغيل أدوات NEXORA عبر مزودين متخصصين.</p></div><span className="portal-heading-icon"><Bot size={25} /></span></div>
+      <div className="portal-heading"><div><span className="section-kicker">منظومة الذكاء الاصطناعي</span><h1>مكتبة المحركات</h1><p>25 محركاً موزعاً على النص والبرمجة والصور والفيديو والصوت؛ حالة كل موصل موضحة بشفافية.</p></div><span className="portal-heading-icon"><Bot size={25} /></span></div>
       <div className="engine-notice"><ShieldCheck size={19} /><div><b>حالة الربط بشفافية</b><p>تتحدث حالة المفتاح تلقائياً من إعدادات الخادم. وجود المفتاح لا يثبت نجاح الاتصال؛ لن نعرض محركاً على أنه يعمل قبل اختبار طلب حقيقي.</p></div></div>
       <div className="engine-stats"><div><strong>{engines.length}</strong><span>محركاً ضمن الخطة</span></div><div><strong>4</strong><span>مجالات رئيسية</span></div><div><strong>2K / 4K</strong><span>حسب دعم كل نموذج</span></div></div>
       <div className="engine-tools"><div className="engine-tabs">{categories.map((item) => { const Icon = item.icon; return <button key={item.id} onClick={() => setCategory(item.id)} className={category === item.id ? "engine-tab active" : "engine-tab"}><Icon size={15} />{item.label}</button>; })}</div><label className="engine-search"><Search size={16} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن محرك..." /></label></div>
