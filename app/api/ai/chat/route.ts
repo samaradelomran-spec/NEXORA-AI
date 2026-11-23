@@ -90,11 +90,11 @@ export async function POST(request: Request) {
 
     if (provider === "openai") {
       const key = process.env.OPENAI_API_KEY;
-      if (!key) return json({ error: "محرك OpenAI غير مربوط بعد. أضف OPENAI_API_KEY في إعدادات الاستضافة." }, 503);
+      if (!key || !process.env.OPENAI_MODEL?.trim()) return json({ error: "أضف OPENAI_API_KEY وOPENAI_MODEL من حسابك في إعدادات الخادم." }, 503);
       const input = safeMessages.map((item) => ({ role: item.role, content: item.content }));
       response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: process.env.OPENAI_MODEL || "gpt-6.2-sol", instructions: systemInstruction, input, max_output_tokens: 1800 }),
+        body: JSON.stringify({ model: process.env.OPENAI_MODEL, instructions: systemInstruction, input, max_output_tokens: 1800 }),
         cache: "no-store"
       });
       const data = await response.json();
@@ -102,12 +102,12 @@ export async function POST(request: Request) {
       answer = extractOpenAI(data);
     } else if (provider === "anthropic") {
       const key = process.env.ANTHROPIC_API_KEY;
-      if (!key) return json({ error: "محرك Claude غير مربوط بعد. أضف ANTHROPIC_API_KEY في إعدادات الاستضافة." }, 503);
+      if (!key || !process.env.ANTHROPIC_MODEL?.trim()) return json({ error: "أضف ANTHROPIC_API_KEY وANTHROPIC_MODEL من حسابك في إعدادات الخادم." }, 503);
       response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { "x-api-key": key, "anthropic-version": "2026-10-21", "content-type": "application/json" },
+        headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
         body: JSON.stringify({
-          model: process.env.ANTHROPIC_MODEL || "claude-sonnet-5",
+          model: process.env.ANTHROPIC_MODEL,
           system: systemInstruction,
           messages: safeMessages.map((item) => ({ role: item.role, content: item.content })),
           max_tokens: 1800
@@ -119,12 +119,12 @@ export async function POST(request: Request) {
       answer = (data.content || []).filter((part: any) => part.type === "text").map((part: any) => part.text).join("\n");
     } else if (provider === "mistral") {
       const key = process.env.MISTRAL_API_KEY;
-      if (!key) return json({ error: "محرك Mistral غير مربوط بعد. أضف MISTRAL_API_KEY في إعدادات الاستضافة." }, 503);
+      if (!key || !process.env.MISTRAL_MODEL?.trim()) return json({ error: "أضف MISTRAL_API_KEY وMISTRAL_MODEL من حسابك في إعدادات الخادم." }, 503);
       response = await fetch("https://api.mistral.ai/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: process.env.MISTRAL_MODEL || "mistral-large-latest",
+          model: process.env.MISTRAL_MODEL,
           messages: [{ role: "system", content: systemInstruction }, ...safeMessages],
           max_tokens: 1800
         }),
@@ -181,12 +181,12 @@ export async function POST(request: Request) {
       answer = (data.message?.content || []).filter((part: any) => part.type === "text").map((part: any) => part.text).join("\n");
     } else {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
-      if (!key) return json({ error: "محرك Gemini غير مربوط بعد. أضف GOOGLE_AI_API_KEY في إعدادات الاستضافة." }, 503);
+      if (!key || !process.env.GEMINI_MODEL?.trim()) return json({ error: "أضف GOOGLE_AI_API_KEY وGEMINI_MODEL من حسابك في إعدادات الخادم." }, 503);
       response = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
         method: "POST",
         headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: process.env.GEMINI_MODEL || "gemini-3.8-flash",
+          model: process.env.GEMINI_MODEL,
           store: false,
           input: safeMessages.map((item, index) => ({
             type: item.role === "assistant" ? "model_output" : "user_input",
