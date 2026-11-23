@@ -1,5 +1,5 @@
-import { checkDailyGenerationLimit } from ""../../../../lib/server/generation-jobs"";
-import { ensureCreditBalance, chargeCredits, refundCredits, studioCreditCost, CREDIT_COSTS } from "../../../../lib/server/credits";
+import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
+import { ensureCreditBalance, chargeCredits, refundCredits, CREDIT_COSTS } from "../../../../lib/server/credits";
 
 import { randomUUID } from "node:crypto";
 
@@ -103,6 +103,11 @@ export async function GET(request: Request) {
     const audioUrl = typeof output === "string" ? output : output?.url || "";
     const completed = status === "SUCCEEDED" && Boolean(audioUrl);
     const result = { ...job.result, audio_url: audioUrl || null, provider_error: completed ? null : task.failure || "فشل إنشاء الصوت." };
+    if (!completed && Number(job.result?.credit_amount) > 0 && !job.result?.credit_refunded) {
+      const refund = await refundCredits({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: Number(job.result.credit_amount), description: "إعادة نقاط مهمة صوتية فشلت", idempotencyKey: jobId, metadata: { provider: "runway", jobId } });
+      if (!refund.ok) return Response.json({ error: refund.error }, { status: refund.status });
+      result.credit_refunded = true;
+    }
     await jobsRest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, {
       method: "PATCH", headers: { Prefer: "return=minimal" },
       body: JSON.stringify({ status: completed ? "completed" : "failed", result, updated_at: new Date().toISOString() })
