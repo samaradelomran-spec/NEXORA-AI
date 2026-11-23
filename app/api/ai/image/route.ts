@@ -1,4 +1,5 @@
-import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
+import { checkDailyGenerationLimit } from ""../../../../lib/server/generation-jobs"";
+import { ensureCreditBalance, chargeCredits, refundCredits, studioCreditCost, CREDIT_COSTS } from "../../../../lib/server/credits";
 
 import { createHash } from "node:crypto";
 
@@ -13,7 +14,7 @@ async function authenticatedUser(request: Request) {
     headers: { apikey: anon, Authorization: "Bearer " + token }, cache: "no-store"
   });
   if (!response.ok) return null;
-  return { user: await response.json() as { id: string }, token, url, anon };
+  return { user: await response.json() as { id: string; email?: string }, token, url, anon };
 }
 
 async function recordJob(url: string, token: string, anon: string, ownerId: string, prompt: string, provider: string, model: string, resolution: string) {
@@ -38,6 +39,9 @@ export async function POST(request: Request) {
     const provider = (["google", "openai", "stability", "fal"].includes(body.provider || "") ? body.provider : "openai") as "google" | "openai" | "stability" | "fal";
     const usage = await checkDailyGenerationLimit({ url: auth.url, anon: auth.anon, token: auth.token, ownerId: auth.user.id, serviceType: "image" });
     if (!usage.allowed) return Response.json({ error: usage.reason === "limit" ? "وصلت إلى حدك اليومي (" + usage.limit + " عملية). جرّب غداً أو انتقل إلى Pro." : "تعذر التحقق من حد الاستخدام. حاول بعد قليل." }, { status: usage.reason === "limit" ? 429 : 503 });
+    const creditAmount = CREDIT_COSTS.image;
+    const creditCheck = await ensureCreditBalance({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: creditAmount });
+    if (!creditCheck.ok) return Response.json({ error: creditCheck.error }, { status: creditCheck.status });
     if (body.realismBoost && usage.plan !== "pro") return Response.json({ error: "تحسين الواقعية المتقدم متاح لخطة Pro." }, { status: 403 });
     if (body.realismBoost) prompt += "\n\nEnhance photorealism: physically accurate lighting and materials, natural skin and fine texture detail where relevant, realistic depth and optics, coherent shadows, subtle imperfections, lifelike color response. Preserve the requested subject and composition; avoid artificial-looking overprocessing.";
     if (resolution === "4K" && (provider === "stability" || provider === "fal")) return Response.json({ error: "هذا المحرك لا يضمن 4K. اختر Gemini أو OpenAI لاستهداف 4K." }, { status: 400 });
@@ -139,6 +143,8 @@ export async function POST(request: Request) {
     }
 
     if (!image) return Response.json({ error: "لم يرجع المحرك ملف صورة صالحاً." }, { status: 502 });
+    const charge = await chargeCredits({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: creditAmount, description: "إنشاء صورة", metadata: { provider, model, resolution } });
+    if (!charge.ok) return Response.json({ error: charge.error }, { status: charge.status });
     await recordJob(auth.url, auth.token, auth.anon, auth.user.id, prompt, provider, model, resolution);
     return Response.json({ image, mimeType, resolution: provider === "stability" ? "model-default" : resolution, model, provider }, { headers: { "Cache-Control": "no-store" } });
   } catch {
