@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       await jobsRest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status: "failed", result: { provider: "runway", model, request_id: data.id, provider_error: charge.error } }) });
       return Response.json({ error: charge.error }, { status: charge.status });
     }
-    await rest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ result: { provider: "runway", model, request_id: data.id, duration, kind, credit_amount: creditAmount, credit_charge_id: jobId } }) });
+    await jobsRest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ result: { provider: "runway", model, request_id: data.id, duration, kind, credit_amount: creditAmount, credit_charge_id: jobId } }) });
     return Response.json({ jobId, status: "PENDING" });
   } catch {
     return Response.json({ error: "حدث خطأ أثناء إرسال مهمة الموسيقى." }, { status: 500 });
