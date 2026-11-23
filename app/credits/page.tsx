@@ -10,8 +10,8 @@ type Balance = { isAdmin: boolean; unlimited: boolean; balance: number | null; t
 
 const packages = [
   { name: "البداية", price: "$3", credits: "10", description: "للتجربة والاستخدام الخفيف" },
-  { name: "المبدع", price: "$10", credits: "2,500", description: "للمشاريع المتوسطة" },
-  { name: "المحترف", price: "$25", credits: "7,000", description: "للاستخدام المكثف" }
+  { name: "المبدع", price: "$30", credits: "2,500", description: "للمشاريع المتوسطة" },
+  { name: "المحترف", price: "$50", credits: "7,000", description: "للاستخدام المكثف" }
 ];
 
 export default function CreditsPage() {
