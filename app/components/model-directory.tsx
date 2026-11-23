@@ -16,7 +16,7 @@ const engines = [
   { name: "Stability AI", providerId: "stability", category: "image", tasks: "إنشاء الصور والتحرير والتحسين", detail: "أدوات توليد وتعديل الصور حسب توفر النموذج", key: "STABILITY_API_KEY" },
   { name: "Runway", providerId: "runway", category: "video", tasks: "إنشاء الفيديو والتحرير", detail: "إنتاج فيديو عبر واجهات Runway المتاحة", key: "RUNWAY_API_KEY" },
   { name: "Google Gemini Omni Video", providerId: "google", category: "video", tasks: "توليد فيديو قصير من النص", detail: "إنشاء مقاطع قصيرة عبر Gemini Omni Flash", key: "GOOGLE_AI_API_KEY" },
-  { name: "Kling AI", providerId: "catalog", category: "video", tasks: "تحريك الصور وإنشاء المقاطع", detail: "يتطلب وصول API من مزود يدعم حسابك", key: "KLING_API_KEY" },
+  { name: "Kling AI 4.0", providerId: "kling", category: "video", tasks: "تحويل النص والصور إلى فيديو سينمائي", detail: "موصل Kling 4.0 الأصلي مضاف؛ يتطلب مفتاح API ورصيداً وصلاحية للنموذج", key: "KLING_API_KEY" },
   { name: "Luma", providerId: "luma", category: "video", tasks: "مشاهد ومقاطع فيديو مولدة", detail: "إنشاء فيديو وفق إمكانات النموذج المتاحة", key: "LUMA_API_KEY" },
   { name: "ElevenLabs", providerId: "elevenlabs", category: "audio", tasks: "الأصوات والتعليق الصوتي", detail: "تحويل النص إلى كلام وأدوات صوتية", key: "ELEVENLABS_API_KEY" },
   { name: "Runway Music", providerId: "runway", category: "audio", tasks: "توليد الموسيقى", detail: "توليد مقاطع موسيقية وآلاتية", key: "RUNWAY_API_KEY" },
