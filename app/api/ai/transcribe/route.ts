@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { checkDailyGenerationLimit } from ""../../../../lib/server/generation-jobs"";
-import { ensureCreditBalance, chargeCredits, refundCredits, studioCreditCost, CREDIT_COSTS } from "../../../../lib/server/credits";
+import { checkDailyGenerationLimit } from "../../../../lib/server/generation-jobs";
+import { ensureCreditBalance, chargeCredits, refundCredits, CREDIT_COSTS } from "../../../../lib/server/credits";
 
 export const maxDuration = 120;
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
