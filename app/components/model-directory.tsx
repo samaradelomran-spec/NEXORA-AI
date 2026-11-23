@@ -2,44 +2,67 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, AudioLines, Bot, CheckCircle2, Code2, Film, Image as ImageIcon, Search, ShieldCheck, Video } from "lucide-react";
+import { ArrowLeft, AudioLines, Bot, CheckCircle2, Clapperboard, Code2, Film, Gamepad2, Image as ImageIcon, Layers3, Search, ShieldCheck, Video } from "lucide-react";
 
-type Category = "all" | "text" | "image" | "video" | "audio";
+type Category = "all" | "coding" | "software" | "webapps" | "games" | "cinema" | "series" | "video" | "image" | "audio" | "assistant";
 const engines = [
-  { name: "OpenAI", providerId: "openai", category: "text", tasks: "المحادثة، الكتابة، البرمجة والتحليل", detail: "نماذج لغوية ومساعدة ذكية متعددة الاستخدامات", key: "OPENAI_API_KEY" },
-  { name: "Anthropic Claude", providerId: "anthropic", category: "text", tasks: "الكتابة الطويلة، التحليل والبرمجة", detail: "مساعد لغوي متقدم لفهم السياق والعمل على المشاريع", key: "ANTHROPIC_API_KEY" },
-  { name: "Google Gemini", providerId: "google", category: "text", tasks: "المحادثة، تحليل الصور والملفات", detail: "نماذج متعددة الوسائط ومهام عامة", key: "GOOGLE_AI_API_KEY" },
-  { name: "Mistral AI", providerId: "mistral", category: "text", tasks: "المحادثة، التلخيص والبرمجة", detail: "عائلة نماذج لغوية قابلة للاستخدام عبر API", key: "MISTRAL_API_KEY" },
-  { name: "OpenAI Images", providerId: "openai", category: "image", tasks: "إنشاء الصور وتحريرها", detail: "توليد صور من الوصف وتعديلات الصور المدعومة", key: "OPENAI_API_KEY" },
-  { name: "Google Gemini", providerId: "google", category: "image", tasks: "إنشاء الصور وفهم الصور", detail: "قدرات صور بحسب النموذج والخطة المتاحة", key: "GOOGLE_AI_API_KEY" },
-  { name: "Black Forest Labs FLUX", providerId: "fal", category: "image", tasks: "توليد الصور الفنية والواقعية", detail: "نماذج FLUX عبر واجهات المزود المدعومة", key: "FAL_KEY أو BFL_API_KEY" },
-  { name: "Stability AI", providerId: "stability", category: "image", tasks: "إنشاء الصور والتحرير والتحسين", detail: "أدوات توليد وتعديل الصور حسب توفر النموذج", key: "STABILITY_API_KEY" },
-  { name: "Runway", providerId: "runway", category: "video", tasks: "إنشاء الفيديو والتحرير", detail: "إنتاج فيديو عبر واجهات Runway المتاحة", key: "RUNWAY_API_KEY" },
-  { name: "Google Gemini Omni Video", providerId: "google", category: "video", tasks: "توليد فيديو قصير من النص", detail: "إنشاء مقاطع قصيرة عبر Gemini Omni Flash", key: "GOOGLE_AI_API_KEY" },
-  { name: "Kling AI 4.0", providerId: "kling", category: "video", tasks: "تحويل النص والصور إلى فيديو سينمائي", detail: "موصل Kling 4.0 الأصلي مضاف؛ يتطلب مفتاح API ورصيداً وصلاحية للنموذج", key: "KLING_API_KEY" },
-  { name: "Luma", providerId: "luma", category: "video", tasks: "مشاهد ومقاطع فيديو مولدة", detail: "إنشاء فيديو وفق إمكانات النموذج المتاحة", key: "LUMA_API_KEY" },
-  { name: "ElevenLabs", providerId: "elevenlabs", category: "audio", tasks: "الأصوات والتعليق الصوتي", detail: "تحويل النص إلى كلام وأدوات صوتية", key: "ELEVENLABS_API_KEY" },
-  { name: "Runway Music", providerId: "runway", category: "audio", tasks: "توليد الموسيقى", detail: "توليد مقاطع موسيقية وآلاتية", key: "RUNWAY_API_KEY" },
-  { name: "Runway Sound Effects", providerId: "runway", category: "audio", tasks: "المؤثرات الصوتية", detail: "إنشاء مؤثرات صوتية من وصف نصي", key: "RUNWAY_API_KEY" },
-  { name: "Google Gemini TTS", providerId: "google", category: "audio", tasks: "التعليق الصوتي متعدد اللغات", detail: "توليد صوت طبيعي مع التحكم بالنبرة والإلقاء", key: "GOOGLE_AI_API_KEY" },
-  { name: "Deepgram Nova 3", providerId: "deepgram", category: "audio", tasks: "تحويل الكلام إلى نص", detail: "موصل التفريغ المباشر مضاف؛ يحتاج مفتاح API واختباراً فعلياً", key: "DEEPGRAM_API_KEY" },
-  { name: "OpenAI Audio", providerId: "openai", category: "audio", tasks: "الصوت والتفريغ والمعالجة", detail: "واجهات صوتية بحسب النماذج المتاحة", key: "OPENAI_API_KEY" },
-  { name: "AssemblyAI Universal", providerId: "assemblyai", category: "audio", tasks: "التفريغ والتحليل الصوتي", detail: "موصل الرفع والتفريغ غير المتزامن مضاف؛ يحتاج مفتاح API واختباراً فعلياً", key: "ASSEMBLYAI_API_KEY" },
-  { name: "DeepSeek", providerId: "deepseek", category: "text", tasks: "البرمجة، التفكير وحل المشكلات", detail: "موصل المحادثة مضاف؛ يحتاج مفتاحاً ومعرّف نموذج صالحاً ثم اختباراً فعلياً", key: "DEEPSEEK_API_KEY" },
-  { name: "Groq", providerId: "groq", category: "text", tasks: "البرمجة والاستجابة السريعة", detail: "موصل المحادثة مضاف؛ يحتاج مفتاحاً ومعرّف نموذج صالحاً ثم اختباراً فعلياً", key: "GROQ_API_KEY" },
-  { name: "xAI Grok", providerId: "xai", category: "text", tasks: "التحليل والكتابة والبرمجة", detail: "موصل المحادثة مضاف؛ يحتاج مفتاحاً ومعرّف نموذج صالحاً ثم اختباراً فعلياً", key: "XAI_API_KEY" },
-  { name: "Cohere", providerId: "cohere", category: "text", tasks: "البحث الدلالي وتحليل النصوص", detail: "موصل Chat API v2 مضاف؛ يحتاج مفتاحاً ومعرّف نموذج صالحاً ثم اختباراً فعلياً", key: "COHERE_API_KEY" },
-  { name: "Together AI", providerId: "together", category: "text", tasks: "نماذج مفتوحة للبرمجة والتوليد", detail: "موصل المحادثة متوافق مع واجهة OpenAI؛ يحتاج مفتاحاً ومعرّف نموذج صالحاً ثم اختباراً فعلياً", key: "TOGETHER_API_KEY" },
-  { name: "Fireworks AI", providerId: "fireworks", category: "text", tasks: "البرمجة والاستدلال متعدد النماذج", detail: "موصل المحادثة متوافق مع واجهة OpenAI؛ يحتاج مفتاحاً ومعرّف نموذج صالحاً ثم اختباراً فعلياً", key: "FIREWORKS_API_KEY" }
+  { name: "OpenAI Codex", providerId: "openai", category: "coding", tasks: "كتابة الكود وتصحيح الأخطاء والاختبارات", detail: "محرك برمجة مخصص لمهام التطوير", key: "OPENAI_API_KEY" },
+  { name: "Claude Code", providerId: "anthropic", category: "coding", tasks: "تحليل قواعد الكود وبناء الميزات", detail: "مساعد هندسي للمهام البرمجية متعددة الملفات", key: "ANTHROPIC_API_KEY" },
+  { name: "DeepSeek Coder", providerId: "deepseek", category: "coding", tasks: "حل المسائل وكتابة الكود", detail: "موصل DeepSeek للمحادثة البرمجية؛ يتطلب مفتاحاً ومعرّف نموذج", key: "DEEPSEEK_API_KEY + DEEPSEEK_MODEL" },
+  { name: "Groq Code", providerId: "groq", category: "coding", tasks: "توليد الكود والاستجابة السريعة", detail: "موصل Groq للمحادثة البرمجية؛ يتطلب مفتاحاً ومعرّف نموذج", key: "GROQ_API_KEY + GROQ_MODEL" },
+
+  { name: "OpenAI Software Architect", providerId: "openai", category: "software", tasks: "تصميم معمارية البرامج والأنظمة", detail: "تحليل المتطلبات والواجهات وقواعد البيانات والأمان", key: "OPENAI_API_KEY" },
+  { name: "Claude Systems Engineer", providerId: "anthropic", category: "software", tasks: "هندسة الأنظمة وتخطيط التنفيذ", detail: "تفكيك النظام إلى خدمات ومكوّنات وخطوات تنفيذ", key: "ANTHROPIC_API_KEY" },
+  { name: "Gemini Software Builder", providerId: "google", category: "software", tasks: "تخطيط البرامج متعددة الوسائط", detail: "تصميم حلول البرامج وربط الملفات والوسائط", key: "GOOGLE_AI_API_KEY" },
+
+  { name: "OpenAI Web & App Designer", providerId: "openai", category: "webapps", tasks: "تصميم المواقع وتطبيقات الويب", detail: "تخطيط الصفحات وتجربة المستخدم والواجهات", key: "OPENAI_API_KEY" },
+  { name: "Claude Web & App Builder", providerId: "anthropic", category: "webapps", tasks: "بناء هيكل المواقع والتطبيقات", detail: "تحويل المتطلبات إلى مكوّنات وخدمات وخطة تنفيذ", key: "ANTHROPIC_API_KEY" },
+  { name: "Gemini UI/UX Builder", providerId: "google", category: "webapps", tasks: "تجربة المستخدم وتحليل المراجع", detail: "تصميم تدفقات الاستخدام والواجهات بمساعدة الوسائط", key: "GOOGLE_AI_API_KEY" },
+
+  { name: "OpenAI Game Developer", providerId: "openai", category: "games", tasks: "تصميم ميكانيكيات اللعبة والكود", detail: "تطوير الفكرة والأنظمة والمراحل والنماذج الأولية", key: "OPENAI_API_KEY" },
+  { name: "Claude Game Designer", providerId: "anthropic", category: "games", tasks: "عالم اللعبة والشخصيات والمراحل", detail: "وثائق تصميم اللعبة وتوازن اللعب والسرد", key: "ANTHROPIC_API_KEY" },
+  { name: "DeepSeek Game Programmer", providerId: "deepseek", category: "games", tasks: "برمجة منطق اللعبة وحل المشكلات", detail: "مساعدة برمجية لبناء أنظمة اللعب", key: "DEEPSEEK_API_KEY + DEEPSEEK_MODEL" },
+
+  { name: "OpenAI Film Director", providerId: "openai", category: "cinema", tasks: "المعالجة السينمائية والإخراج واللقطات", detail: "تطوير السيناريو ورؤية المخرج وخطة التصوير", key: "OPENAI_API_KEY" },
+  { name: "Claude Screenwriter", providerId: "anthropic", category: "cinema", tasks: "كتابة السيناريو والحوار", detail: "بناء الشخصيات والمشاهد والحوار السينمائي", key: "ANTHROPIC_API_KEY" },
+  { name: "Kling AI 4.0", providerId: "kling", category: "cinema", tasks: "توليد فيديو سينمائي حتى 4K", detail: "موصل Kling 4.0 الأصلي؛ يتطلب مفتاح API ورصيداً وصلاحية للنموذج", key: "KLING_API_KEY" },
+  { name: "Runway Film Engine", providerId: "runway", category: "cinema", tasks: "توليد الفيديو والمشاهد", detail: "محرك فيديو عبر نقطة النهاية والنموذج المحددين في الحساب", key: "RUNWAY_API_KEY" },
+  { name: "Luma Dream Machine", providerId: "luma", category: "cinema", tasks: "إنشاء مشاهد سينمائية", detail: "توليد مقاطع وفق إمكانات النموذج المتاح", key: "LUMA_API_KEY" },
+  { name: "Gemini Omni Cinema", providerId: "google", category: "cinema", tasks: "توليد فيديو قصير من الوصف", detail: "فيديو عبر Gemini Omni حسب أهلية النموذج والحساب", key: "GOOGLE_AI_API_KEY" },
+
+  { name: "OpenAI Series Writer", providerId: "openai", category: "series", tasks: "تطوير المسلسل والحلقات", detail: "خريطة الموسم وأقواس الشخصيات ومخططات الحلقات", key: "OPENAI_API_KEY" },
+  { name: "Claude Series Room", providerId: "anthropic", category: "series", tasks: "كتابة الحلقات والسيناريو", detail: "تطوير عالم المسلسل واستمرارية الشخصيات والحوار", key: "ANTHROPIC_API_KEY" },
+
+  { name: "fal.ai Video Engine", providerId: "fal", category: "video", tasks: "توليد الفيديو عبر نماذج متعددة", detail: "يستخدم نقطة نهاية الفيديو المحددة في FAL_VIDEO_MODEL", key: "FAL_KEY + FAL_VIDEO_MODEL" },
+  { name: "OpenAI Image Engine", providerId: "openai", category: "image", tasks: "إنشاء الصور وتحريرها", detail: "توليد الصور من النص وتعديلها وفق دعم النموذج", key: "OPENAI_API_KEY" },
+  { name: "ElevenLabs Voice Engine", providerId: "elevenlabs", category: "audio", tasks: "التعليق الصوتي وتحويل النص إلى كلام", detail: "توليد الصوت وفق الصوت والنموذج المحددين", key: "ELEVENLABS_API_KEY" },
+  { name: "NEXORA AI Assistant", providerId: "openai", category: "assistant", tasks: "المساعدة العامة والبحث والتخطيط", detail: "مساعد المنصة متعدد الاستخدامات", key: "OPENAI_API_KEY" }
 ] as const;
 
 const categories: { id: Category; label: string; icon: typeof Bot }[] = [
   { id: "all", label: "كل المحركات", icon: Bot },
-  { id: "text", label: "النص والبرمجة", icon: Code2 },
+  { id: "coding", label: "البرمجة والتكويد", icon: Code2 },
+  { id: "software", label: "البرامج والأنظمة", icon: Layers3 },
+  { id: "webapps", label: "المواقع والتطبيقات", icon: Code2 },
+  { id: "games", label: "الألعاب", icon: Gamepad2 },
+  { id: "cinema", label: "السينما والأفلام", icon: Clapperboard },
+  { id: "series", label: "المسلسلات", icon: Film },
+  { id: "video", label: "الفيديو", icon: Video },
   { id: "image", label: "الصور", icon: ImageIcon },
-  { id: "video", label: "الفيديو والسينما", icon: Video },
-  { id: "audio", label: "الصوت", icon: AudioLines }
+  { id: "audio", label: "الصوت", icon: AudioLines },
+  { id: "assistant", label: "المساعد الذكي", icon: Bot }
 ];
+
+function iconFor(category: string) {
+  if (["coding", "software", "webapps"].includes(category)) return <Code2 size={20} />;
+  if (category === "games") return <Gamepad2 size={20} />;
+  if (category === "cinema") return <Clapperboard size={20} />;
+  if (category === "series") return <Film size={20} />;
+  if (category === "video") return <Video size={20} />;
+  if (category === "image") return <ImageIcon size={20} />;
+  if (category === "audio") return <AudioLines size={20} />;
+  return <Bot size={20} />;
+}
 
 export default function ModelDirectory() {
   const [category, setCategory] = useState<Category>("all");
@@ -56,21 +79,22 @@ export default function ModelDirectory() {
       setIntegrated(connected);
     }).catch(() => setConfigured({}));
   }, []);
+
   const visible = useMemo(() => engines.filter((engine) =>
     (category === "all" || engine.category === category) &&
-    (engine.name.toLowerCase().includes(query.toLowerCase()) || engine.tasks.includes(query))
+    (engine.name.toLowerCase().includes(query.toLowerCase()) || engine.tasks.includes(query) || engine.detail.includes(query))
   ), [category, query]);
 
   return <main className="portal-shell">
     <header className="portal-top"><Link href="/" className="portal-back"><ArrowLeft size={16} /> العودة لمساحة العمل</Link><span className="portal-brand">NEXORA <b>AI</b></span></header>
     <section className="portal-content">
-      <div className="portal-heading"><div><span className="section-kicker">منظومة الذكاء الاصطناعي</span><h1>مكتبة المحركات</h1><p>25 محركاً موزعاً على النص والبرمجة والصور والفيديو والصوت؛ حالة كل موصل موضحة بشفافية.</p></div><span className="portal-heading-icon"><Bot size={25} /></span></div>
-      <div className="engine-notice"><ShieldCheck size={19} /><div><b>حالة الربط بشفافية</b><p>تتحدث حالة المفتاح تلقائياً من إعدادات الخادم. وجود المفتاح لا يثبت نجاح الاتصال؛ لن نعرض محركاً على أنه يعمل قبل اختبار طلب حقيقي.</p></div></div>
-      <div className="engine-stats"><div><strong>{engines.length}</strong><span>محركاً ضمن الخطة</span></div><div><strong>4</strong><span>مجالات رئيسية</span></div><div><strong>2K / 4K</strong><span>حسب دعم كل نموذج</span></div></div>
+      <div className="portal-heading"><div><span className="section-kicker">منظومة الذكاء الاصطناعي</span><h1>مكتبة المحركات</h1><p>25 محركاً موزعاً على 10 تخصصات مستقلة؛ كل محرك مرتبط بموصل API محدد.</p></div><span className="portal-heading-icon"><Bot size={25} /></span></div>
+      <div className="engine-notice"><ShieldCheck size={19} /><div><b>حالة الربط بشفافية</b><p>الموصل الجاهز يعني أن التكامل البرمجي موجود. لا نعرض المحرك على أنه يعمل قبل إضافة المفتاح وإجراء اختبار فعلي ناجح.</p></div></div>
+      <div className="engine-stats"><div><strong>{engines.length}</strong><span>محركاً ضمن الخطة</span></div><div><strong>10</strong><span>تخصصات مستقلة</span></div><div><strong>2K / 4K</strong><span>حسب دعم كل نموذج</span></div></div>
       <div className="engine-tools"><div className="engine-tabs">{categories.map((item) => { const Icon = item.icon; return <button key={item.id} onClick={() => setCategory(item.id)} className={category === item.id ? "engine-tab active" : "engine-tab"}><Icon size={15} />{item.label}</button>; })}</div><label className="engine-search"><Search size={16} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث عن محرك..." /></label></div>
-      <div className="engine-grid">{visible.map((engine) => <article className="engine-card" key={engine.name + engine.category}><div className="engine-card-top"><span className="engine-avatar">{engine.category === "text" ? <Bot size={20} /> : engine.category === "image" ? <ImageIcon size={20} /> : engine.category === "video" ? <Film size={20} /> : <AudioLines size={20} />}</span><span className={configured[engine.providerId] ? "engine-status engine-configured" : integrated[engine.providerId] ? "engine-status engine-integrated" : "engine-status"}><i />{configured[engine.providerId] && integrated[engine.providerId] ? "المفتاح موجود · يحتاج اختبار فعلي" : configured[engine.providerId] ? "المفتاح موجود · الموصل غير مفعّل" : integrated[engine.providerId] ? "الموصل جاهز · أضف المفتاح" : "غير مربوط"}</span></div><h2>{engine.name}</h2><b className="engine-task">{engine.tasks}</b><p>{engine.detail}</p><div className="engine-key">متغير الربط: <code>{engine.key}</code></div></article>)}</div>
+      <div className="engine-grid">{visible.map((engine) => <article className="engine-card" key={engine.name}><div className="engine-card-top"><span className="engine-avatar">{iconFor(engine.category)}</span><span className={configured[engine.providerId] ? "engine-status engine-configured" : integrated[engine.providerId] ? "engine-status engine-integrated" : "engine-status"}><i />{configured[engine.providerId] && integrated[engine.providerId] ? "المفتاح موجود · يحتاج اختبار فعلي" : configured[engine.providerId] ? "المفتاح موجود · الموصل غير مفعّل" : integrated[engine.providerId] ? "الموصل جاهز · أضف المفتاح" : "غير مربوط"}</span></div><h2>{engine.name}</h2><b className="engine-task">{engine.tasks}</b><p>{engine.detail}</p><div className="engine-key">متغير الربط: <code>{engine.key}</code></div></article>)}</div>
       {visible.length === 0 && <p className="engine-empty">ما لقينا محركاً مطابقاً لبحثك.</p>}
-      <div className="engine-foot"><CheckCircle2 size={17} /><span>بعد إضافة مفاتيح المزودين إلى إعدادات الاستضافة، سنختبر الاتصال ونحدّث حالة كل محرك.</span></div>
+      <div className="engine-foot"><CheckCircle2 size={17} /><span>كل تخصص له محركاته المستقلة؛ توفر الخدمة الفعلي يعتمد على مفاتيح المزودين وإتاحتها واختبارها.</span></div>
     </section>
   </main>;
 }
