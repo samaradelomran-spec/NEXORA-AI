@@ -157,7 +157,7 @@ export async function POST(request: Request) {
       const data = await response.json();
       if (!response.ok) return json({ error: "تعذر على " + config.label + " إكمال الطلب. تحقق من المفتاح ومعرّف النموذج والرصيد." }, 502);
       const content = data.choices?.[0]?.message?.content;
-      answer = typeof content === "string" ? content : Array.isArray(content) ? content.filter((part: any) => part.type === "text").map((part: any) => part.text).join("\\n") : "";
+      answer = typeof content === "string" ? content : Array.isArray(content) ? content.filter((part: any) => part.type === "text").map((part: any) => part.text).join("\n") : "";
     } else if (provider === "cohere") {
       const key = process.env.COHERE_API_KEY;
       const model = process.env.COHERE_MODEL;
@@ -176,7 +176,7 @@ export async function POST(request: Request) {
       });
       const data = await response.json();
       if (!response.ok) return json({ error: "تعذر على Cohere إكمال الطلب. تحقق من المفتاح ومعرّف النموذج والرصيد." }, 502);
-      answer = (data.message?.content || []).filter((part: any) => part.type === "text").map((part: any) => part.text).join("\\n");
+      answer = (data.message?.content || []).filter((part: any) => part.type === "text").map((part: any) => part.text).join("\n");
     } else {
       const key = process.env.GOOGLE_AI_API_KEY || process.env.GEMINI_API_KEY;
       if (!key) return json({ error: "محرك Gemini غير مربوط بعد. أضف GOOGLE_AI_API_KEY في إعدادات الاستضافة." }, 503);
