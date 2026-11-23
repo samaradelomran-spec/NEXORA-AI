@@ -26,12 +26,31 @@ export async function GET() {
     { id: "credits", label: "محفظة النقاط", configured: has("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"), required: ["مفاتيح Supabase وتطبيق migration الخاصة بالنقاط"], note: "هذا الفحص لا يتحقق من تطبيق migration أو عمل RPC؛ اختبرهما قبل تفعيل البيع والخصم." }
   ];
 
+  const providers = [
+    { id: "openai", configured: has("OPENAI_API_KEY"), integrated: true },
+    { id: "anthropic", configured: has("ANTHROPIC_API_KEY"), integrated: true },
+    { id: "google", configured: hasAny("GOOGLE_AI_API_KEY", "GEMINI_API_KEY"), integrated: true },
+    { id: "mistral", configured: has("MISTRAL_API_KEY"), integrated: true },
+    { id: "fal", configured: has("FAL_KEY"), integrated: true },
+    { id: "stability", configured: has("STABILITY_API_KEY"), integrated: true },
+    { id: "runway", configured: has("RUNWAY_API_KEY"), integrated: true },
+    { id: "luma", configured: has("LUMA_API_KEY"), integrated: true },
+    { id: "elevenlabs", configured: has("ELEVENLABS_API_KEY"), integrated: true },
+    { id: "deepseek", configured: has("DEEPSEEK_API_KEY"), integrated: false },
+    { id: "groq", configured: has("GROQ_API_KEY"), integrated: false },
+    { id: "xai", configured: has("XAI_API_KEY"), integrated: false },
+    { id: "cohere", configured: has("COHERE_API_KEY"), integrated: false },
+    { id: "together", configured: has("TOGETHER_API_KEY"), integrated: false },
+    { id: "fireworks", configured: has("FIREWORKS_API_KEY"), integrated: false },
+    { id: "catalog", configured: false, integrated: false }
+  ];
   const configuredCount = checks.filter((item) => item.configured).length;
   return Response.json({
     service: "NEXORA AI",
     status: configuredCount === checks.length ? "configured" : "needs_setup",
     summary: { configured: configuredCount, total: checks.length },
     checks,
+    providers,
     verification: "configuration_only",
     checkedAt: new Date().toISOString(),
     security: "لا يعرض هذا المسار أي قيمة سرية ولا يرسل طلبات مدفوعة إلى مزودي الخدمات."
