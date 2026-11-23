@@ -42,7 +42,8 @@ export async function POST(request: Request) {
     if (!creditCheck.ok) return Response.json({ error: creditCheck.error }, { status: creditCheck.status });
     const durationOptions = body.kind === "sfx" ? [5, 10, 15, 30] : [15, 30, 60, 90];
     const duration = durationOptions.includes(Number(body.duration)) ? Number(body.duration) : (body.kind === "sfx" ? 10 : 30);
-    const model = kind === "sfx" ? (process.env.RUNWAY_SFX_MODEL || "eleven_text_to_sound_v2") : (process.env.RUNWAY_MUSIC_MODEL || "eleven_music_v2_5");
+    const model = kind === "sfx" ? process.env.RUNWAY_SFX_MODEL : process.env.RUNWAY_MUSIC_MODEL;
+    if (!model?.trim()) return Response.json({ error: kind === "sfx" ? "أضف RUNWAY_SFX_MODEL من النماذج المتاحة في حسابك." : "أضف RUNWAY_MUSIC_MODEL من النماذج المتاحة في حسابك." }, { status: 503 });
     const endpoint = kind === "sfx" ? "sound_effect" : "text_to_music";
     const requestBody = kind === "sfx" ? { model, promptText: prompt, duration, loop: false, outputFormat: "mp3" } : { model, promptText: prompt, duration, instrumental: Boolean(body.instrumental) };
     const submitted = await fetch("https://api.dev.runwayml.com/v1/" + endpoint, {
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
     if (!saved.ok) return Response.json({ error: "تم إرسال الموسيقى لكن تعذر تسجيل المهمة في حسابك." }, { status: 500 });
     const charge = await chargeCredits({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: creditAmount, description: kind === "sfx" ? "إنشاء مؤثر صوتي" : "إنشاء موسيقى", idempotencyKey: jobId, metadata: { provider: "runway", model, kind, jobId } });
     if (!charge.ok) {
-      await rest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status: "failed", result: { provider: "runway", model, request_id: data.id, provider_error: charge.error } }) });
+      await jobsRest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ status: "failed", result: { provider: "runway", model, request_id: data.id, provider_error: charge.error } }) });
       return Response.json({ error: charge.error }, { status: charge.status });
     }
     await rest(auth.url, auth.token, auth.anon, "?id=eq." + jobId + "&owner_id=eq." + auth.user.id, { method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ result: { provider: "runway", model, request_id: data.id, duration, kind, credit_amount: creditAmount, credit_charge_id: jobId } }) });
