@@ -42,12 +42,34 @@ export async function GET() {
     { id: "stripe", label: "Stripe Payments", configured: has("STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRO_PRICE_ID"), required: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "STRIPE_PRO_PRICE_ID"], note: "لا تفعّل الدفع قبل اختبار Checkout وWebhook وأهلية بلد النشاط." },
     { id: "credits", label: "محفظة النقاط", configured: has("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"), required: ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"], note: "لا يثبت هذا الفحص تطبيق migration أو عمل دوال RPC." }
   ];
+  const providers = [
+    { id: "openai", configured: has("OPENAI_API_KEY"), integrated: true },
+    { id: "anthropic", configured: has("ANTHROPIC_API_KEY"), integrated: true },
+    { id: "google", configured: hasAny("GOOGLE_AI_API_KEY", "GEMINI_API_KEY"), integrated: true },
+    { id: "mistral", configured: has("MISTRAL_API_KEY"), integrated: true },
+    { id: "fal", configured: has("FAL_KEY"), integrated: true },
+    { id: "stability", configured: has("STABILITY_API_KEY"), integrated: true },
+    { id: "runway", configured: has("RUNWAY_API_KEY"), integrated: true },
+    { id: "luma", configured: has("LUMA_API_KEY"), integrated: true },
+    { id: "elevenlabs", configured: has("ELEVENLABS_API_KEY"), integrated: true },
+    { id: "kling", configured: has("KLING_API_KEY"), integrated: true },
+    { id: "deepgram", configured: has("DEEPGRAM_API_KEY"), integrated: true },
+    { id: "assemblyai", configured: has("ASSEMBLYAI_API_KEY"), integrated: true },
+    { id: "deepseek", configured: has("DEEPSEEK_API_KEY", "DEEPSEEK_MODEL"), integrated: true },
+    { id: "groq", configured: has("GROQ_API_KEY", "GROQ_MODEL"), integrated: true },
+    { id: "xai", configured: has("XAI_API_KEY", "XAI_MODEL"), integrated: true },
+    { id: "cohere", configured: has("COHERE_API_KEY", "COHERE_MODEL"), integrated: true },
+    { id: "together", configured: has("TOGETHER_API_KEY", "TOGETHER_MODEL"), integrated: true },
+    { id: "fireworks", configured: has("FIREWORKS_API_KEY", "FIREWORKS_MODEL"), integrated: true },
+    { id: "catalog", configured: false, integrated: false }
+  ];
   const configured = checks.filter((item) => item.configured).length;
   return Response.json({
     service: "NEXORA AI",
     status: configured === checks.length ? "configured" : "needs_setup",
     summary: { configured, total: checks.length },
     checks,
+    providers,
     verification: "configuration_only",
     checkedAt: new Date().toISOString(),
     security: "لا يعرض هذا المسار أي قيمة سرية ولا يرسل طلبات مدفوعة إلى مزودي الخدمات."
