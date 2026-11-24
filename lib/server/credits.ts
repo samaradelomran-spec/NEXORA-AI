@@ -31,7 +31,14 @@ export const CREDIT_COSTS = {
 } as const;
 
 export function studioCreditCost(studio: string): number {
-  return CREDIT_COSTS[studio as keyof typeof CREDIT_COSTS] ?? CREDIT_COSTS.assistant;
+  const aliases: Record<string, keyof typeof CREDIT_COSTS> = {
+    web: "website",
+    apps: "app",
+    programming: "coding",
+    system: "software"
+  };
+  const key = aliases[studio] || studio;
+  return CREDIT_COSTS[key as keyof typeof CREDIT_COSTS] ?? CREDIT_COSTS.assistant;
 }
 
 function isUnlimited(email?: string) {
