@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     const jobId = randomUUID();
     const saved = await jobsRest(auth.url, auth.token, auth.anon, "", {
       method: "POST", headers: { Prefer: "return=minimal" },
-      body: JSON.stringify({ id: jobId, owner_id: auth.user.id, service_type: kind === "sfx" ? "sound_effect" : "music", prompt, status: "queued", result: { provider: "runway", model, request_id: data.id, duration, kind } })
+      body: JSON.stringify({ id: jobId, owner_id: auth.user.id, service_type: kind === "sfx" ? "sound_effect" : "music", prompt, status: "queued", result: { provider: "runway", model, request_id: data.id, duration, kind, credit_amount: creditAmount, credit_charge_id: jobId } })
     });
     if (!saved.ok) return Response.json({ error: "تم إرسال الموسيقى لكن تعذر تسجيل المهمة في حسابك." }, { status: 500 });
     const charge = await chargeCredits({ url: auth.url, ownerId: auth.user.id, email: auth.user.email, amount: creditAmount, description: kind === "sfx" ? "إنشاء مؤثر صوتي" : "إنشاء موسيقى", idempotencyKey: jobId, metadata: { provider: "runway", model, kind, jobId } });
