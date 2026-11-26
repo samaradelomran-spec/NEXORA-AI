@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
   }
   const task = taskValue as Task;
   const requested = typeof body?.provider === "string" ? body.provider : typeof form?.get("provider") === "string" ? String(form?.get("provider")) : "";
-  const provider = requested || choose(task);
+  const provider = !requested || requested === "auto" ? choose(task) : requested;
   if (!provider) {
     return Response.json({
       error: "لا يوجد مزوّد مهيأ لهذه المهمة. أضف مفاتيح API ومعرّفات النماذج المطلوبة في إعدادات الخادم.",
