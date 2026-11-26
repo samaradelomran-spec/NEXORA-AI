@@ -29,10 +29,10 @@ export default function MusicStudio() {
     if (!accessToken) { setNotice("سجّل الدخول أولاً لإنشاء الموسيقى."); return; }
     setBusy(true); setNotice(""); setAudioUrl(""); setJobId(""); setStatus("PENDING");
     try {
-      const response = await fetch("/api/ai/music", {
+      const response = await fetch("/api/ai/engine", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + accessToken },
-        body: JSON.stringify({ prompt, duration: Number(duration), instrumental, kind })
+        body: JSON.stringify({ task: "music", prompt, duration: Number(duration), instrumental, kind })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إرسال الموسيقى.");
@@ -51,7 +51,7 @@ export default function MusicStudio() {
       const accessToken = await token();
       if (!accessToken) { if (active) { setNotice("انتهت جلسة الدخول."); setBusy(false); } return; }
       try {
-        const response = await fetch("/api/ai/music?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + accessToken } });
+        const response = await fetch("/api/ai/engine?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + accessToken } });
         const data = await response.json();
         if (!active) return;
         if (!response.ok) throw new Error(data.error || "تعذر فحص الموسيقى.");
@@ -61,7 +61,7 @@ export default function MusicStudio() {
           const supabase = getSupabaseBrowserClient();
           const accessToken = await token();
           if (supabase && accessToken) {
-            const download = await fetch("/api/ai/music/download?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + accessToken } });
+            const download = await fetch("/api/ai/engine/download?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + accessToken } });
             if (download.ok) {
               const blob = await download.blob();
               const { data: { user } } = await supabase.auth.getUser();
