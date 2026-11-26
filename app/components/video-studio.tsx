@@ -11,7 +11,7 @@ export default function VideoStudio() {
   const [realismBoost, setRealismBoost] = useState(false);
   const [resolution, setResolution] = useState("2K");
   const [duration, setDuration] = useState("5");
-  const [provider, setProvider] = useState<"fal" | "runway" | "luma" | "google" | "kling">("fal");
+  const [provider, setProvider] = useState<"fal" | "runway" | "luma" | "google" | "kling" | "auto">("auto");
   const [busy, setBusy] = useState(false);
   const [jobId, setJobId] = useState("");
   const [status, setStatus] = useState("");
@@ -43,10 +43,10 @@ export default function VideoStudio() {
     if (!token) { setNotice("سجّل الدخول أولاً لإنشاء الفيديو."); return; }
     setBusy(true); setNotice(""); setVideoUrl(""); setJobId(""); setStatus("IN_QUEUE");
     try {
-      const response = await fetch("/api/ai/video", {
+      const response = await fetch("/api/ai/engine", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-        body: JSON.stringify({ prompt, resolution, provider, duration: Number(duration), realismBoost })
+        body: JSON.stringify({ task: "video", prompt, resolution, provider, duration: Number(duration), realismBoost })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إرسال مهمة الفيديو.");
@@ -65,7 +65,7 @@ export default function VideoStudio() {
       const token = await accessToken();
       if (!token) { if (active) { setNotice("انتهت جلسة الدخول. سجّل الدخول مجدداً."); setBusy(false); } return; }
       try {
-        const response = await fetch("/api/ai/video?jobId=" + encodeURIComponent(jobId), {
+        const response = await fetch("/api/ai/engine?jobId=" + encodeURIComponent(jobId), {
           headers: { Authorization: "Bearer " + token }
         });
         const data = await response.json();
@@ -93,7 +93,7 @@ export default function VideoStudio() {
           const supabase = getSupabaseBrowserClient();
           const downloadToken = await accessToken();
           if (supabase && downloadToken) {
-            const download = await fetch("/api/ai/video/download?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + downloadToken } });
+            const download = await fetch("/api/ai/engine/download?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + downloadToken } });
             if (download.ok) {
               const blob = await download.blob();
               const { data: { user } } = await supabase.auth.getUser();
