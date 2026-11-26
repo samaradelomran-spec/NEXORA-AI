@@ -11,7 +11,7 @@ type Message = { role: "user" | "assistant"; content: string };
 type Studio = "assistant" | "coding" | "software" | "web" | "games" | "cinema" | "series";
 
 export default function AIChat({ initialPrompt = "", studio = "assistant" }: { initialPrompt?: string; studio?: Studio }) {
-  const [provider, setProvider] = useState<Provider>("openai");
+  const [provider, setProvider] = useState<Provider | "auto">("auto");
   const [messages, setMessages] = useState<Message[]>([]);
   const [prompt, setPrompt] = useState(initialPrompt);
   const [busy, setBusy] = useState(false);
@@ -28,10 +28,10 @@ export default function AIChat({ initialPrompt = "", studio = "assistant" }: { i
     const next: Message[] = [...messages, { role: "user", content: value }];
     setMessages(next); setPrompt(""); setBusy(true); setNotice("");
     try {
-      const response = await fetch("/api/ai/chat", {
+      const response = await fetch("/api/ai/engine", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ provider, messages: next, studio })
+        body: JSON.stringify({ task: "chat", provider, messages: next, studio })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إكمال الطلب.");
