@@ -10,7 +10,7 @@ export default function ImageStudio() {
   const [isPro, setIsPro] = useState(false);
   const [realismBoost, setRealismBoost] = useState(false);
   const [resolution, setResolution] = useState("2K");
-  const [provider, setProvider] = useState<"openai" | "google" | "stability" | "fal">("openai");
+  const [provider, setProvider] = useState<"openai" | "google" | "stability" | "fal" | "auto">("auto");
   const [image, setImage] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -35,10 +35,10 @@ export default function ImageStudio() {
     if (!session?.access_token) { setNotice("سجّل الدخول أولاً لإنشاء الصور."); return; }
     setBusy(true); setNotice(""); setImage("");
     try {
-      const response = await fetch("/api/ai/image", {
+      const response = await fetch("/api/ai/engine", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ prompt, resolution, provider, realismBoost })
+        body: JSON.stringify({ task: "image", prompt, resolution, provider, realismBoost })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إنشاء الصورة.");
