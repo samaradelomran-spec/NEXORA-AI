@@ -8,7 +8,7 @@ import MusicStudio from "./music-studio";
 
 export default function AudioStudio() {
   const [text, setText] = useState("");
-  const [provider, setProvider] = useState<"elevenlabs" | "google">("elevenlabs");
+  const [provider, setProvider] = useState<"elevenlabs" | "google" | "auto">("auto");
   const [voice, setVoice] = useState("Kore");
   const [audio, setAudio] = useState("");
   const [busy, setBusy] = useState(false);
@@ -27,10 +27,10 @@ export default function AudioStudio() {
     if (!session?.access_token) { setNotice("سجّل الدخول أولاً لإنشاء الصوت."); return; }
     setBusy(true); setAudio(""); setNotice("");
     try {
-      const response = await fetch("/api/ai/audio", {
+      const response = await fetch("/api/ai/engine", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
-        body: JSON.stringify({ text, provider, voice })
+        body: JSON.stringify({ task: "audio", text, provider, voice })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إنشاء الصوت.");
@@ -61,7 +61,8 @@ export default function AudioStudio() {
     try {
       const form = new FormData();
       form.set("file", transcriptionFile);
-      form.set("provider", transcriptionProvider);
+      form.set("task", "transcribe");
+      form.set("provider", "auto");
       const response = await fetch("/api/ai/transcribe", {
         method: "POST",
         headers: { Authorization: "Bearer " + session.access_token },
