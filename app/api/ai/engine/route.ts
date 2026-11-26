@@ -17,7 +17,7 @@ function configured(name: string) {
   return Boolean(process.env[name]?.trim());
 }
 
-function choose(task: Task): string | null {
+function choose(task: Task, body: Record<string, unknown> | null): string | null {
   const candidates: Record<Task, Array<[string, string[]]>> = {
     chat: [
       ["openai", ["OPENAI_API_KEY", "OPENAI_MODEL"]],
@@ -52,7 +52,7 @@ function choose(task: Task): string | null {
       ["google", ["GOOGLE_AI_API_KEY", "GEMINI_TTS_MODEL"]],
       ["google", ["GEMINI_API_KEY", "GEMINI_TTS_MODEL"]]
     ],
-    music: [["runway", ["RUNWAY_API_KEY", "RUNWAY_MUSIC_MODEL"]]],
+    music: [["runway", ["RUNWAY_API_KEY", body?.kind === "sfx" ? "RUNWAY_SFX_MODEL" : "RUNWAY_MUSIC_MODEL"]]],
     transcribe: [
       ["deepgram", ["DEEPGRAM_API_KEY"]],
       ["assemblyai", ["ASSEMBLYAI_API_KEY"]]
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
   }
   const task = taskValue as Task;
   const requested = typeof body?.provider === "string" ? body.provider : typeof form?.get("provider") === "string" ? String(form?.get("provider")) : "";
-  const provider = !requested || requested === "auto" ? choose(task) : requested;
+  const provider = !requested || requested === "auto" ? choose(task, body) : requested;
   if (!provider) {
     return Response.json({
       error: "لا يوجد مزوّد مهيأ لهذه المهمة. أضف مفاتيح API ومعرّفات النماذج المطلوبة في إعدادات الخادم.",
