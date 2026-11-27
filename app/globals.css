@@ -576,3 +576,156 @@ button,a,input,textarea,select{transition:background-color .22s,border-color .22
  .nx-hero{min-height:535px}
  .portal-heading-icon{width:49px;height:49px;border-radius:15px}
 }
+
+
+/* NEXORA M Signature — premium dark product system */
+:root{
+ --nx-ink:#07070d;--nx-surface:#0d0d17;--nx-surface-raised:#131321;
+ --nx-line:rgba(190,174,255,.14);--nx-lilac:#c4a0ff;--nx-violet:#8958e8;
+ --nx-blue:#6688f2;--nx-muted:#9692aa;
+}
+html{background:var(--nx-ink);scroll-padding-top:88px}
+body{background:var(--nx-ink);color:#f7f4ff}
+::selection{background:rgba(157,111,239,.38);color:white}
+.nx-shell{
+ background:
+ radial-gradient(ellipse at 68% -12%,rgba(119,72,204,.18),transparent 38%),
+ radial-gradient(ellipse at 0% 80%,rgba(48,72,148,.10),transparent 34%),
+ #07070d;
+}
+.nx-sidebar{
+ width:266px;flex-basis:266px;padding:26px 17px 20px;
+ background:linear-gradient(180deg,rgba(13,12,23,.97),rgba(7,8,15,.98));
+ border-left:1px solid rgba(192,170,255,.13);
+ box-shadow:inset -1px 0 rgba(255,255,255,.018),18px 0 60px rgba(0,0,0,.12);
+}
+.nx-brand{height:66px;margin-bottom:25px;border-bottom-color:rgba(190,174,255,.12)}
+.nx-monogram{
+ position:relative;isolation:isolate;overflow:hidden;
+ background:linear-gradient(145deg,#f3eaff 0%,#c6a2ff 25%,#8c64e9 57%,#5279df 100%) !important;
+ color:#100b1b!important;font:800 25px Inter,sans-serif!important;
+ border:1px solid rgba(255,255,255,.48);
+ box-shadow:0 0 0 4px rgba(163,123,245,.07),0 10px 32px rgba(121,83,218,.34),inset 0 1px 0 rgba(255,255,255,.85)!important;
+}
+.nx-monogram:after{
+ content:"";position:absolute;inset:1px;border-radius:inherit;
+ background:linear-gradient(125deg,rgba(255,255,255,.52),transparent 38%,rgba(255,255,255,.08));
+ z-index:-1;
+}
+.nx-brand b{letter-spacing:.65px;font-size:18px}
+.nx-brand small{letter-spacing:2px;color:#827b9c}
+.nx-side-caption{color:#77718e;letter-spacing:2px;margin-top:22px}
+.nx-nav-item{min-height:42px;border-radius:11px;font-size:12px;color:#aaa4bc}
+.nx-nav-item.is-active{
+ background:linear-gradient(100deg,rgba(133,91,219,.22),rgba(85,107,197,.08));
+ border-color:rgba(185,151,255,.15);box-shadow:inset -2px 0 #c09aff,0 7px 22px rgba(0,0,0,.12);
+ color:#f4eaff;
+}
+.nx-upgrade{border-radius:16px;padding:16px;background:radial-gradient(ellipse at 100% 0%,rgba(148,93,231,.25),transparent 60%),linear-gradient(145deg,#171329,#0e1020);border-color:rgba(192,156,255,.2)}
+.nx-main{background:transparent}
+.nx-topbar{
+ height:76px;padding:0 clamp(18px,3vw,48px);
+ background:rgba(7,7,14,.78);border-bottom-color:rgba(190,174,255,.12);
+ box-shadow:0 8px 35px rgba(0,0,0,.1);
+}
+.nx-breadcrumb{font-size:11px;letter-spacing:.1px}
+.nx-icon-btn,.nx-search-shortcut{
+ background:rgba(255,255,255,.035);border-color:rgba(190,174,255,.15);
+ border-radius:12px;transition:all .2s;
+}
+.nx-icon-btn:hover,.nx-search-shortcut:hover{border-color:rgba(191,158,255,.48);background:rgba(149,104,228,.1)}
+.nx-content{max-width:1600px;padding:clamp(22px,3vw,42px) clamp(16px,3.2vw,52px) 28px}
+.nx-hero{
+ min-height:390px;padding:clamp(28px,4vw,58px);
+ border-radius:25px;border-color:rgba(194,166,255,.2);
+ background:
+ radial-gradient(ellipse at 77% 47%,rgba(126,82,220,.19),transparent 35%),
+ radial-gradient(ellipse at 100% 0%,rgba(63,120,203,.14),transparent 35%),
+ linear-gradient(112deg,#11101d 0%,#101222 52%,#0d1728 100%);
+ box-shadow:0 30px 90px rgba(0,0,0,.27),inset 0 1px rgba(255,255,255,.06);
+}
+.nx-hero:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(110deg,rgba(255,255,255,.025),transparent 42%);z-index:1}
+.nx-eyebrow{border-color:rgba(192,158,255,.24);background:rgba(145,98,222,.1);color:#d4bdff;padding:8px 13px}
+.nx-hero h1{font-size:clamp(36px,4.1vw,56px);line-height:1.28;letter-spacing:-1.4px}
+.nx-hero-copy>p{font-size:13px;color:#b4aec5;line-height:2.15}
+.nx-primary-btn{min-height:46px;padding:0 20px;border-radius:12px;background:linear-gradient(110deg,#a36bea,#7659df 55%,#527fe0);box-shadow:0 12px 35px rgba(126,83,215,.3)}
+.nx-quiet-btn{min-height:46px;border-radius:12px;background:rgba(255,255,255,.035);border-color:rgba(194,173,255,.2)}
+.nx-glass-tile{width:184px;height:200px;border-radius:27px;transform:rotate(-7deg);box-shadow:0 30px 95px rgba(92,66,172,.4),inset 0 1px rgba(255,255,255,.28)}
+.nx-tile-logo{font-size:119px;letter-spacing:-9px;padding-left:5px;background:linear-gradient(145deg,#fff 5%,#e2d2ff 35%,#a58aff 65%,#6dc9ed);background-clip:text;filter:drop-shadow(0 0 22px rgba(164,128,255,.8))}
+.nx-orbit-one{width:330px;height:130px}.nx-orbit-two{width:215px;height:315px}
+.nx-prompt-panel{
+ margin-top:24px;padding:26px 28px;border-radius:20px;
+ border:1px solid rgba(192,168,255,.16);
+ background:linear-gradient(145deg,rgba(19,17,32,.96),rgba(11,13,24,.98));
+ box-shadow:0 18px 55px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.035);
+}
+.nx-prompt-heading h2,.nx-section-head h2{font-size:clamp(21px,2vw,27px);letter-spacing:-.5px}
+.nx-prompt-heading p,.nx-section-head p{font-size:11px;color:#a29bb4}
+.nx-prompt-mark{width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,#a56be9,#5d6ed9);box-shadow:0 10px 30px rgba(129,84,208,.26)}
+.nx-prompt-entry textarea{min-height:96px;border-radius:14px;background:#080a13;border-color:rgba(193,171,255,.17);font-size:12px}
+.nx-prompt-entry button{min-height:43px;border-radius:11px;padding:0 18px}
+.nx-suggestions button{border-radius:30px;padding:8px 13px;background:rgba(255,255,255,.025);border-color:rgba(190,174,255,.14);font-size:10px}
+.nx-studios-section{margin-top:45px}
+.nx-section-head{margin-bottom:20px}
+.nx-studio-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.nx-studio-card{
+ min-height:225px;padding:22px;border-radius:19px;
+ border-color:rgba(190,174,255,.14);
+ background:linear-gradient(145deg,rgba(21,19,36,.96),rgba(11,14,26,.98));
+ box-shadow:0 14px 38px rgba(0,0,0,.13),inset 0 1px rgba(255,255,255,.025);
+}
+.nx-studio-card:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 100% 0%,rgba(153,105,237,.13),transparent 48%)}
+.nx-studio-card:hover{transform:translateY(-6px);border-color:rgba(192,155,255,.45);box-shadow:0 24px 55px rgba(0,0,0,.3),0 0 30px rgba(128,88,218,.09)}
+.nx-studio-icon{width:49px;height:49px;border-radius:15px;box-shadow:inset 0 1px rgba(255,255,255,.08)}
+.nx-studio-card h3{font-size:14px;margin-top:10px}
+.nx-studio-card p{font-size:11px;line-height:1.9;color:#a49cb5}
+.nx-studio-card>button{font-size:10px;margin-top:auto;padding-top:15px}
+.nx-studio-tag{font-size:9px;letter-spacing:.15px}
+.nx-bottom-strip{border-radius:18px;padding:19px 21px;border-color:rgba(190,174,255,.14);background:linear-gradient(105deg,#111323,#11101d)}
+.nx-footer{padding-top:24px;font-size:9px}
+.workspace-detail,.settings-section,.project-card,.engine-card,.credits-package,.activity-item,.project-create{
+ border-radius:18px;border-color:rgba(190,174,255,.15);
+ background:linear-gradient(145deg,rgba(20,17,33,.96),rgba(10,12,23,.98));
+ box-shadow:0 16px 42px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.025);
+}
+.workspace-detail{padding:26px;border-radius:21px}
+.workspace-fields select,.workspace-prompt-label textarea,.project-create input,.project-create select,.project-create textarea{
+ background:#090a14;border-color:rgba(190,174,255,.17);border-radius:12px;
+}
+.workspace-save,.project-submit,.auth-submit{border-radius:12px}
+.portal-shell{
+ background:radial-gradient(ellipse at 78% -8%,rgba(112,66,188,.2),transparent 38%),radial-gradient(ellipse at 4% 75%,rgba(39,74,151,.12),transparent 34%),#07070d;
+}
+.portal-top{height:78px;background:rgba(7,7,14,.8);border-bottom-color:rgba(190,174,255,.13)}
+.portal-brand-wrap{display:flex;align-items:center;gap:11px}
+.nx-settings-monogram{width:37px;height:37px;border-radius:12px;font-size:22px!important}
+.portal-brand{font-size:17px;letter-spacing:.7px}
+.portal-content{max-width:1420px;padding-top:clamp(34px,5vw,64px)}
+.portal-heading h1{font-size:clamp(30px,3.2vw,44px)}
+.settings-toolbar{border:1px solid rgba(190,174,255,.13);border-radius:14px;background:rgba(255,255,255,.025);padding:13px 16px}
+.settings-section{padding:21px;margin:15px 0}
+.settings-section h2{display:flex;align-items:center;gap:10px;color:#eee8fa}
+.settings-row{border-bottom-color:rgba(190,174,255,.09)}
+.auth-card{border-radius:24px;background:linear-gradient(145deg,#171329,#0d0f1d);border-color:rgba(190,174,255,.18);box-shadow:0 28px 100px rgba(0,0,0,.48)}
+@media(max-width:1050px){.nx-studio-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nx-hero-art{left:0;opacity:.62}}
+@media(max-width:780px){
+ .nx-sidebar{width:285px}
+ .nx-topbar{height:64px;padding:0 13px}
+ .nx-content{padding:17px 13px 22px}
+ .nx-hero{min-height:365px;padding:25px 21px;border-radius:19px}
+ .nx-hero h1{font-size:clamp(29px,8vw,37px)}
+ .nx-hero-art{left:-112px;top:77%;opacity:.26;transform:translateY(-50%) scale(.66)}
+ .nx-prompt-panel{padding:18px 15px;border-radius:17px}
+ .nx-studio-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .nx-studio-card{min-height:205px;padding:15px;border-radius:15px}
+ .workspace-detail{padding:17px}
+ .portal-content{padding:30px 15px 55px}
+ .portal-heading{gap:15px;align-items:flex-start}
+}
+@media(max-width:430px){
+ .nx-studio-grid{grid-template-columns:1fr}
+ .nx-studio-card{min-height:175px}
+ .nx-hero-actions{flex-wrap:wrap}
+ .nx-trust-line{gap:7px}
+ .portal-brand{font-size:15px}
+}
