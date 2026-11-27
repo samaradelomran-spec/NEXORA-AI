@@ -26,7 +26,7 @@ export default function SettingsPage() {
   const StatusIcon = ({ ok }: { ok: boolean }) => ok ? <CheckCircle2 size={16} /> : <CircleAlert size={16} />;
 
   return <main className="portal-shell">
-    <header className="portal-top"><Link href="/" className="portal-back"><ArrowLeft size={16} /> العودة لمساحة العمل</Link><span className="portal-brand">NEXORA <b>AI</b></span></header>
+    <header className="portal-top"><Link href="/" className="portal-back"><ArrowLeft size={16} /> العودة لمساحة العمل</Link><span className="portal-brand-wrap"><span className="nx-monogram nx-settings-monogram">M</span><span className="portal-brand">NEXORA <b>AI</b></span></span></header>
     <section className="portal-content">
       <div className="portal-heading"><div><span className="section-kicker">مركز التحكم</span><h1>الإعدادات وحالة الربط</h1><p>تابع الخدمات المتصلة من دون إظهار مفاتيحك السرية في المتصفح.</p></div><span className="portal-heading-icon"><Server size={25} /></span></div>
       <div className="settings-toolbar"><p>هذه الصفحة تعرض فقط ما إذا كان متغير الاتصال موجوداً، ولا تعرض قيمته.</p><button onClick={() => void refresh()} disabled={loading}><RefreshCw size={15} />{loading ? "جارٍ الفحص..." : "تحديث الحالة"}</button></div>

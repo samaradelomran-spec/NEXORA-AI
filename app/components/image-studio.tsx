@@ -10,7 +10,7 @@ export default function ImageStudio() {
   const [isPro, setIsPro] = useState(false);
   const [realismBoost, setRealismBoost] = useState(false);
   const [resolution, setResolution] = useState("2K");
-  const [provider, setProvider] = useState<"openai" | "google" | "stability" | "fal">("openai");
+  const [provider, setProvider] = useState<"openai" | "google" | "stability" | "fal" | "auto">("auto");
   const [image, setImage] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -35,10 +35,10 @@ export default function ImageStudio() {
     if (!session?.access_token) { setNotice("سجّل الدخول أولاً لإنشاء الصور."); return; }
     setBusy(true); setNotice(""); setImage("");
     try {
-      const response = await fetch("/api/ai/image", {
+      const response = await fetch("/api/ai/engine", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
-        body: JSON.stringify({ prompt, resolution, provider, realismBoost })
+        body: JSON.stringify({ task: "image", prompt, resolution, provider, realismBoost })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إنشاء الصورة.");
@@ -62,7 +62,7 @@ export default function ImageStudio() {
 
   return <section className="image-studio-panel">
     <div className="image-studio-head"><div><span className="section-kicker">توليد صور مباشر</span><h3>استوديو الصور</h3><p>اكتب وصف الصورة وحدد الدقة المستهدفة.</p></div><span><ImageIcon size={22} /></span></div>
-    <div className="image-engine-select"><label>محرك الصور<select value={provider} onChange={(e) => { const next = e.target.value as "openai" | "google" | "stability" | "fal"; setProvider(next); if ((next === "stability" || next === "fal") && resolution === "4K") setResolution("2K"); }} disabled={busy}><option value="google">Google Gemini Image</option><option value="openai">OpenAI Images</option><option value="stability">Stability AI</option><option value="fal">FLUX 2 Pro · fal.ai</option></select></label></div>
+    <div className="image-engine-select"><label>محرك الصور<select value={provider} onChange={(e) => { const next = e.target.value as "openai" | "google" | "stability" | "fal" | "auto"; setProvider(next); if ((next === "stability" || next === "fal") && resolution === "4K") setResolution("2K"); }} disabled={busy}><option value="auto">تلقائي · NEXORA CORE</option><option value="google">Google Gemini Image</option><option value="openai">OpenAI Images</option><option value="stability">Stability AI</option><option value="fal">FLUX 2 Pro · fal.ai</option></select></label></div>
     {provider === "stability" && <p className="image-engine-note">Stability AI يستخدم الدقة الافتراضية للنموذج؛ لا يضمن إخراج 2K أو 4K. اختر Gemini أو OpenAI عند الحاجة إلى دقة أعلى.</p>}{provider === "fal" && <p className="image-engine-note">FLUX 2 Pro يدعم أحجاماً حتى 2K تقريباً عبر هذا المسار؛ 4K غير متاح هنا. اختر Gemini أو OpenAI لـ 4K.</p>}
     <label className="image-prompt-label">وصف الصورة<textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder="مثال: مشهد سينمائي لمدينة مستقبلية عند الغروب، إضاءة واقعية وتفاصيل دقيقة..." /></label>
     <div className="image-studio-controls"><label>الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)}><option value="2K">2K — مستهدف</option>{(provider === "google" || provider === "openai") && <option value="4K">4K — مستهدف حسب النموذج</option>}<option value="1080p">وضع قياسي — 1K</option></select></label><span>اختر Gemini أو OpenAI. 2K و4K حسب دعم النموذج المختار.</span></div>

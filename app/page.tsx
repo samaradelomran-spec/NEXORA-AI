@@ -48,7 +48,7 @@ export default function Home() {
     <main className="nx-shell">
       <aside className={`nx-sidebar ${mobileOpen ? "nx-sidebar-open" : ""}`}>
         <Link href="/" className="nx-brand">
-          <span className="nx-brand-mark">N</span>
+          <span className="nx-brand-mark nx-monogram">M</span>
           <span><b>NEXORA <i>AI</i></b><small>CREATIVE INTELLIGENCE</small></span>
           <button className="nx-icon-btn nx-mobile-close" onClick={(event) => { event.preventDefault(); setMobileOpen(false); }} aria-label="إغلاق القائمة"><X size={18} /></button>
         </Link>
@@ -107,7 +107,7 @@ export default function Home() {
               <div className="nx-art-grid" />
               <div className="nx-art-glow" />
               <div className="nx-orbit nx-orbit-one" /><div className="nx-orbit nx-orbit-two" />
-              <div className="nx-glass-tile"><div className="nx-tile-top"><span /><span /><span /><small> NEXORA / STUDIO</small></div><div className="nx-tile-logo">N</div><div className="nx-tile-bottom"><i /><i /><i /><i /></div></div>
+              <div className="nx-glass-tile"><div className="nx-tile-top"><span /><span /><span /><small> NEXORA / STUDIO</small></div><div className="nx-tile-logo">M</div><div className="nx-tile-bottom"><i /><i /><i /><i /></div></div>
               <div className="nx-float-card nx-float-a"><ImageIcon size={16} /><span>إنشاء بصري</span><b>01</b></div>
               <div className="nx-float-card nx-float-b"><Video size={16} /><span>استوديو الفيديو</span><b>02</b></div>
               <div className="nx-art-caption">CREATE · BUILD · IMAGINE</div>

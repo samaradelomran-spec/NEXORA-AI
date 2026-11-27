@@ -11,7 +11,7 @@ export default function VideoStudio() {
   const [realismBoost, setRealismBoost] = useState(false);
   const [resolution, setResolution] = useState("2K");
   const [duration, setDuration] = useState("5");
-  const [provider, setProvider] = useState<"fal" | "runway" | "luma" | "google" | "kling">("fal");
+  const [provider, setProvider] = useState<"fal" | "runway" | "luma" | "google" | "kling" | "auto">("auto");
   const [busy, setBusy] = useState(false);
   const [jobId, setJobId] = useState("");
   const [status, setStatus] = useState("");
@@ -43,10 +43,10 @@ export default function VideoStudio() {
     if (!token) { setNotice("سجّل الدخول أولاً لإنشاء الفيديو."); return; }
     setBusy(true); setNotice(""); setVideoUrl(""); setJobId(""); setStatus("IN_QUEUE");
     try {
-      const response = await fetch("/api/ai/video", {
+      const response = await fetch("/api/ai/engine", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-        body: JSON.stringify({ prompt, resolution, provider, duration: Number(duration), realismBoost })
+        body: JSON.stringify({ task: "video", prompt, resolution, provider, duration: Number(duration), realismBoost })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "تعذر إرسال مهمة الفيديو.");
@@ -65,7 +65,7 @@ export default function VideoStudio() {
       const token = await accessToken();
       if (!token) { if (active) { setNotice("انتهت جلسة الدخول. سجّل الدخول مجدداً."); setBusy(false); } return; }
       try {
-        const response = await fetch("/api/ai/video?jobId=" + encodeURIComponent(jobId), {
+        const response = await fetch("/api/ai/engine?jobId=" + encodeURIComponent(jobId), {
           headers: { Authorization: "Bearer " + token }
         });
         const data = await response.json();
@@ -93,7 +93,7 @@ export default function VideoStudio() {
           const supabase = getSupabaseBrowserClient();
           const downloadToken = await accessToken();
           if (supabase && downloadToken) {
-            const download = await fetch("/api/ai/video/download?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + downloadToken } });
+            const download = await fetch("/api/ai/engine/download?jobId=" + encodeURIComponent(jobId), { headers: { Authorization: "Bearer " + downloadToken } });
             if (download.ok) {
               const blob = await download.blob();
               const { data: { user } } = await supabase.auth.getUser();
@@ -122,7 +122,7 @@ export default function VideoStudio() {
   return <section className="video-studio-panel">
     <div className="image-studio-head"><div><span className="section-kicker">طابور توليد الفيديو</span><h3>استوديو الفيديو والسينما</h3><p>صف المشهد والحركة وأسلوب التصوير الذي تريده.</p></div><span><Clapperboard size={22} /></span></div>
     <label className="image-prompt-label">وصف الفيديو<textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={5} placeholder="مثال: لقطة سينمائية لمدينة ليلية تحت المطر، حركة كاميرا بطيئة وإضاءة واقعية..." /></label>
-    <div className="video-engine-select"><label>محرك الفيديو<select value={provider} onChange={(e) => { const next = e.target.value as "fal" | "runway" | "luma" | "google" | "kling"; setProvider(next); if (next === "google") setResolution("1080p"); else if (next === "runway" && resolution !== "4K") setResolution("720p"); else if (next === "fal" && resolution === "720p") setResolution("2K"); else if (next === "luma") setResolution("1080p"); }} disabled={busy}><option value="fal">fal.ai</option><option value="runway">Runway</option><option value="luma">Luma Dream Machine</option><option value="google">Google Gemini Omni</option><option value="kling">Kling AI 4.0</option></select></label><label>المدة<select value={duration} onChange={(e) => setDuration(e.target.value)} disabled={busy || provider === "luma" || provider === "google"}><option value="5">{provider === "google" ? "تلقائية حسب المحرك" : "5 ثوانٍ"}</option>{provider !== "luma" && provider !== "google" && <><option value="10">10 ثوانٍ</option><option value="15">15 ثانية</option>{provider === "kling" && <option value="30">30 ثانية</option>}</>}</select></label></div>
+    <div className="video-engine-select"><label>محرك الفيديو<select value={provider} onChange={(e) => { const next = e.target.value as "fal" | "runway" | "luma" | "google" | "kling" | "auto"; setProvider(next); if (next === "google") setResolution("1080p"); else if (next === "runway" && resolution !== "4K") setResolution("720p"); else if (next === "fal" && resolution === "720p") setResolution("2K"); else if (next === "luma") setResolution("1080p"); }} disabled={busy}><option value="auto">تلقائي · NEXORA CORE</option><option value="fal">fal.ai</option><option value="runway">Runway</option><option value="luma">Luma Dream Machine</option><option value="google">Google Gemini Omni</option><option value="kling">Kling AI 4.0</option></select></label><label>المدة<select value={duration} onChange={(e) => setDuration(e.target.value)} disabled={busy || provider === "luma" || provider === "google"}><option value="5">{provider === "google" ? "تلقائية حسب المحرك" : "5 ثوانٍ"}</option>{provider !== "luma" && provider !== "google" && <><option value="10">10 ثوانٍ</option><option value="15">15 ثانية</option>{provider === "kling" && <option value="30">30 ثانية</option>}</>}</select></label></div>
     {provider === "fal" ? <label className="video-resolution-label">الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)} disabled={busy}><option value="2K">2K</option><option value="4K">4K (حسب دعم النموذج)</option><option value="1080p">1080p</option></select></label> : provider === "luma" ? <label className="video-resolution-label">الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)} disabled={busy}><option value="1080p">1080p</option></select></label> : provider === "google" ? <label className="video-resolution-label">الدقة المستهدفة<select value={resolution} onChange={(e) => setResolution(e.target.value)} disabled={busy}><option value="720p">720p</option><option value="1080p">1080p</option><option value="4K">4K (حسب إتاحة Google)</option></select></label> : provider === "kling" ? <label className="video-resolution-label">الدقة المستهدفة<select value={resolution === "4K" ? "4K" : resolution === "1080p" ? "1080p" : "720p"} onChange={(e) => setResolution(e.target.value)} disabled={busy}><option value="720p">720p</option><option value="1080p">1080p</option><option value="4K">4K (Kling 4.0)</option></select></label> : <><label className="video-resolution-label">الدقة المستهدفة<select value={resolution === "4K" ? "4K" : "720p"} onChange={(e) => setResolution(e.target.value)} disabled={busy}><option value="720p">720p</option><option value="4K">4K (Seedance 2.5)</option></select></label><p className="video-engine-note">Runway يستخدم Seedance 2.5 افتراضياً: 720p، ويتيح خيار 4K عند دعم النموذج وحساب المزود.</p></>}
     <label className="video-engine-note"><input type="checkbox" checked={realismBoost} onChange={(e) => setRealismBoost(e.target.checked)} disabled={!isPro || busy} /> تحسين الواقعية السينمائية والتفاصيل {isPro ? "(Pro)" : "— ميزة Pro"}</label>
     <button className="image-generate-btn" onClick={() => void createVideo()} disabled={busy || !prompt.trim()}>{busy ? <LoaderCircle size={17} className="spin" /> : <Play size={17} />}{busy ? "الفيديو قيد المعالجة..." : "إنشاء الفيديو"}</button>
